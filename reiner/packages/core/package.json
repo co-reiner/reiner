@@ -1,0 +1,44 @@
+{
+  "name": "@co-reiner/core",
+  "version": "0.0.1",
+  "description": "Reiner core: harness contracts, the tool protocol, config and project state.",
+  "keywords": [
+    "reiner",
+    "ai",
+    "agent",
+    "harness",
+    "tool-protocol"
+  ],
+  "license": "MIT",
+  "author": "Alexandr Yeskov",
+  "homepage": "https://github.com/co-reiner/reiner/tree/main/reiner/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/co-reiner/reiner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/co-reiner/reiner.git",
+    "directory": "reiner/packages/core"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "jsonc-parser": "^3.3.1",
+    "zod": "^4.6.7"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/copy-license.mjs"
+  }
+}
