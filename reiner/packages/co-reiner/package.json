@@ -1,0 +1,43 @@
+{
+  "name": "co-reiner",
+  "version": "0.0.1",
+  "description": "Alias for @co-reiner/reiner: the same reiner command, so npx co-reiner works.",
+  "keywords": [
+    "reiner",
+    "ai",
+    "cli",
+    "agent",
+    "playwright",
+    "copilot"
+  ],
+  "license": "MIT",
+  "author": "Alexandr Yeskov",
+  "homepage": "https://github.com/co-reiner/reiner/tree/main/reiner/packages/co-reiner#readme",
+  "bugs": {
+    "url": "https://github.com/co-reiner/reiner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/co-reiner/reiner.git",
+    "directory": "reiner/packages/co-reiner"
+  },
+  "type": "module",
+  "bin": {
+    "reiner": "bin/reiner.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@co-reiner/reiner": "workspace:*"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/copy-license.mjs"
+  }
+}
