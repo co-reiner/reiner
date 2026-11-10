@@ -1,0 +1,45 @@
+{
+  "name": "@co-reiner/browser",
+  "version": "0.0.1",
+  "description": "Reiner browser layer: Playwright launcher with per-project persistent profiles",
+  "keywords": [
+    "reiner",
+    "playwright",
+    "browser",
+    "chromium",
+    "edge",
+    "chrome",
+    "persistent-profile"
+  ],
+  "license": "MIT",
+  "author": "Alexandr Yeskov",
+  "homepage": "https://github.com/co-reiner/reiner/tree/main/reiner/packages/browser#readme",
+  "bugs": {
+    "url": "https://github.com/co-reiner/reiner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/co-reiner/reiner.git",
+    "directory": "reiner/packages/browser"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@co-reiner/core": "workspace:^",
+    "playwright-core": "^1.65.0"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/copy-license.mjs"
+  }
+}
