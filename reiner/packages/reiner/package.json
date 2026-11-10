@@ -1,0 +1,27 @@
+{
+  "name": "@co-reiner/reiner",
+  "version": "0.0.0",
+  "description": "Reiner: take the reins of your AI harness. The reiner command with its harnesses (Microsoft 365 Copilot).",
+  "license": "MIT",
+  "author": "Alexandr Yeskov",
+  "type": "module",
+  "bin": {
+    "reiner": "bin/reiner.js"
+  },
+  "exports": {
+    "./cli": "./bin/reiner.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "dependencies": {
+    "@co-reiner/cli": "workspace:^",
+    "@co-reiner/harness-ms": "workspace:^"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/copy-license.mjs"
+  }
+}

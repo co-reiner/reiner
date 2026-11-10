@@ -1,0 +1,11 @@
+{
+  "//": "Runtime settings for tsx when the CLI runs from its TypeScript source, inside or outside this repository. Type checking uses the workspace tsconfig.json.",
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true
+  }
+}

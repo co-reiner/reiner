@@ -1,0 +1,59 @@
+{
+  "name": "@co-reiner/cli",
+  "version": "0.0.1",
+  "description": "Reiner CLI without harnesses: the terminal interface, its commands and tool execution. Install @co-reiner/reiner for the CLI with its harnesses.",
+  "keywords": [
+    "reiner",
+    "ai",
+    "cli",
+    "agent",
+    "playwright",
+    "terminal",
+    "ink",
+    "tui"
+  ],
+  "license": "MIT",
+  "author": "Alexandr Yeskov",
+  "homepage": "https://github.com/co-reiner/reiner/tree/main/reiner/packages/cli#readme",
+  "bugs": {
+    "url": "https://github.com/co-reiner/reiner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/co-reiner/reiner.git",
+    "directory": "reiner/packages/cli"
+  },
+  "type": "module",
+  "bin": {
+    "reiner-cli": "bin/reiner-cli.js"
+  },
+  "exports": {
+    "./run": "./bin/run.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "tsconfig.runtime.json"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@co-reiner/core": "workspace:^",
+    "commander": "^15.1.0",
+    "ink": "^8.0.0",
+    "marked": "^18.1.3",
+    "react": "^19.3.1",
+    "tsx": "^4.23.15"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/copy-license.mjs"
+  },
+  "devDependencies": {
+    "@co-reiner/exchange-packs": "workspace:^",
+    "@co-reiner/harness-ms": "workspace:^"
+  }
+}
