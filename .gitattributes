@@ -1,0 +1,5 @@
+# Shell scripts must keep LF endings on every checkout, or their first line breaks.
+test-projects/*/reiner text eol=lf
+*.sh text eol=lf
+# Batch files need CRLF and are committed that way: leave their bytes alone.
+*.cmd -text

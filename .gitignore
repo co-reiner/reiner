@@ -1,0 +1,34 @@
+# Reiner per-project state (browser profiles contain live session cookies)
+.reiner/
+
+# Test projects in test-projects/ are committed; their .reiner/ folders are covered by the rule above.
+
+# Scratch output of local tools (generated images and the like)
+/output/
+
+# Dependencies and builds
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+
+# Playwright
+test-results/
+playwright-report/
+
+# Environment and logs
+.env
+.env.*
+!.env.example
+*.log
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# LICENSE copies made by each package's prepack script (the source is the root LICENSE)
+reiner/packages/*/LICENSE

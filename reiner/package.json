@@ -1,0 +1,35 @@
+{
+  "name": "reiner-workspace",
+  "private": true,
+  "license": "MIT",
+  "author": "Alexandr Yeskov",
+  "type": "module",
+  "packageManager": "pnpm@10.8.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "reiner": "node packages/reiner/bin/reiner.js",
+    "dev": "node packages/reiner/bin/reiner.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "live:large-chat": "tsx packages/harness-ms/live/large-chat.live.ts",
+    "live:transfer": "tsx packages/cli/live/transfer.live.ts",
+    "live:instructions": "tsx packages/cli/live/instructions.live.ts",
+    "live:tools": "tsx packages/cli/live/tools.live.ts",
+    "live:refresh": "tsx packages/cli/live/refresh.live.ts",
+    "build": "pnpm -r --filter ./packages/** run build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.6",
+    "@types/node": "22",
+    "@types/react": "^19.3.0",
+    "@types/turndown": "^5.0.6",
+    "ink-testing-library": "^4.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
