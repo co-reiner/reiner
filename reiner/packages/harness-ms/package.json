@@ -1,0 +1,49 @@
+{
+  "name": "@co-reiner/harness-ms",
+  "version": "0.0.1",
+  "description": "Reiner harness for Microsoft 365 Copilot. Not affiliated with or endorsed by Microsoft.",
+  "keywords": [
+    "reiner",
+    "ai",
+    "harness",
+    "copilot",
+    "microsoft-365",
+    "m365",
+    "playwright"
+  ],
+  "license": "MIT",
+  "author": "Alexandr Yeskov",
+  "homepage": "https://github.com/co-reiner/reiner/tree/main/reiner/packages/harness-ms#readme",
+  "bugs": {
+    "url": "https://github.com/co-reiner/reiner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/co-reiner/reiner.git",
+    "directory": "reiner/packages/harness-ms"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@co-reiner/browser": "workspace:^",
+    "@co-reiner/core": "workspace:^",
+    "@co-reiner/exchange-packs": "workspace:^",
+    "@mixmark-io/domino": "^2.2.0",
+    "playwright-core": "^1.65.0",
+    "turndown": "^7.2.5"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/copy-license.mjs"
+  }
+}
