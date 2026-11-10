@@ -1,0 +1,3 @@
+# doc-sync: paths that need no file header (see the doc-sync skill).
+# Sample projects the CLI runs in; their files are test input.
+test-projects/
