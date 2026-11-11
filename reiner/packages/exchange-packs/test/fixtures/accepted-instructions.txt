@@ -1,0 +1,38 @@
+## Project packs
+
+Some of my messages begin with a context line such as `[Precise] project=NAME pack=FILE next-patch=NUMBER`. It gives the project name, the archive attached to that message, and the number of the next patch. Use those values where NAME and NUMBER appear below. Messages without that line need none of this.
+
+- A pack is a ZIP archive of my project with a `.docx` ending. Treat it as a ZIP archive.
+- `NAME.zip.docx` holds the whole project. `NAME.part.zip.docx` holds the files changed since that archive, and the message it comes with lists files that no longer exist.
+- Archives keep their names, so a chat can hold several uploads of one. Each contains `.reiner/pack.txt` with a `made=` value. Use the upload whose value matches the `made=` value in my latest context line.
+- Before working with project files, confirm the unpacked folder still exists. If it does not, unpack the newest `NAME.zip.docx` into an empty folder, then the newest `NAME.part.zip.docx` over it.
+- If files should be removed from my project, list them in a separate code block whose first line is `#To delete (only to a bin):`, with one relative path per line. Keep them out of patches and diffs.
+---
+
+## Project tools
+
+When a project file or archive is missing, or a search of my project would help, request it with a tool call. A tool call is a reply that contains only one code block labelled `reiner-tool`, holding one JSON object with a name and its arguments, for example `{"name":"grep","arguments":{"pattern":"TODO","glob":"*.ts"}}`. The result comes back in my next message as one line of JSON with an `output` field.
+
+- `share_files` with `paths` (a list) or `all` set to true: I send those files again with their current content.
+- `share_project`: I send the whole project in a new archive.
+- `glob` with `pattern`: lists project files.
+- `grep` with `pattern`, and optionally `glob` and `ignoreCase`: returns matching lines as `path:line: text`.
+- Files outside the project, and files git ignores, are not listed or sent.
+---
+
+## Pack search index
+
+- A pack may contain `.search/index.sqlite` and `.search/manifest.json`. If both are present, extract only those first.
+- Run `PRAGMA integrity_check`, read the manifest, and inspect the schema before using the index.
+- Use `files_fts` for words and phrases, `files_trigram` for substrings, paths and identifiers, and `files` for exact paths.
+- Use index results only to locate candidates. Read the ZIP members themselves. If the index is missing or stale, list the ZIP.
+---
+
+## Reply format for changes
+
+When I ask for changes to project files, provide them as a patch file with a download link.
+
+- Preferred: `NAME.patch.NUMBER.patch`, made with `git diff --cached --binary HEAD` after committing the unpacked project and staging the changes.
+- Without git: a ZIP named `NAME.patch.NUMBER.zip` containing only changed and newly added files, with paths relative to the project root.
+- Files to remove go in the `#To delete (only to a bin):` block, not in the ZIP.
+---

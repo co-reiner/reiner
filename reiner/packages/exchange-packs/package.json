@@ -1,0 +1,43 @@
+{
+  "name": "@co-reiner/exchange-packs",
+  "version": "0.0.1",
+  "description": "Reiner file exchange by packs, for harnesses that take uploads: packs, the search index, reply modes and instruction sections",
+  "keywords": [
+    "reiner",
+    "ai",
+    "file-exchange",
+    "packs",
+    "search-index"
+  ],
+  "license": "MIT",
+  "author": "Alexandr Yeskov",
+  "homepage": "https://github.com/co-reiner/reiner/tree/main/reiner/packages/exchange-packs#readme",
+  "bugs": {
+    "url": "https://github.com/co-reiner/reiner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/co-reiner/reiner.git",
+    "directory": "reiner/packages/exchange-packs"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@co-reiner/core": "workspace:^",
+    "fflate": "^0.8.3"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/copy-license.mjs"
+  }
+}
