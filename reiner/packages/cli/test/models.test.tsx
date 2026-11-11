@@ -147,7 +147,7 @@ describe('command suggestions', () => {
     expect(lastFrame()).toContain('> /model');
     stdin.write('\u001B'); // Esc
     await tick();
-    expect(lastFrame()).not.toContain('❯');
+    expect(lastFrame()).not.toContain('❯ /');
   });
 });
 

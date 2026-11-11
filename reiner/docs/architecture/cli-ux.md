@@ -43,6 +43,22 @@ precedence over a harness command of the same name. One-shot harness commands ar
 └────────────────────────────────────────────────────────────────┘
 ```
 
+## Logo
+
+Built (2026-11-11). Monochrome, so it reads in any terminal theme and takes the TUI's accent colour.
+An R whose leg runs out as a rein, through the bit, to the prompt: the rider drives the harness through
+its own page, the one contact point, the way a bit is the only contact with a horse.
+
+| Form | Where | Looks like |
+| --- | --- | --- |
+| Block banner | TUI banner on Unicode terminals; [SVG](../assets/logo.svg) for docs | `█▀▀▄` / `█▀▀▄━━━◆━━━❯` / `▀  ▀  reiner` |
+| One-line mark | `reiner --help` on Unicode terminals | `R━◆━❯█ reiner` |
+| ASCII mark | Both places on terminals without Unicode | `R-o-># reiner` |
+
+`packages/cli/src/logo.ts` holds all three and `supportsUnicode()`: Unix terminals get Unicode except the
+Linux console; on Windows only the newer terminals do (Windows Terminal, VS Code, ConEmu, Alacritty,
+JetBrains), not the legacy console host, which draws box-drawing characters as `?`.
+
 ## Startup
 
 1. First run in a folder: if several harnesses are installed and no `defaultHarness` is set globally, a

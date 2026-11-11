@@ -5,6 +5,7 @@
  */
 import { harnessIds, REINER_VERSION, type SignInState } from '@co-reiner/core';
 import { Box, Text } from 'ink';
+import { LOGO_BANNER, LOGO_MARK_ASCII, supportsUnicode } from '../../logo.ts';
 import type { Session } from '../../session.ts';
 import { timeAgo } from '../../time.ts';
 import { commandsFor } from '../commands.ts';
@@ -22,15 +23,38 @@ export function SignInBadge({ state }: { state: SignInState | undefined }) {
   );
 }
 
-export function Banner({ session }: { session: Session }) {
-  return (
-    <Box borderStyle="round" borderColor={ACCENT} paddingX={1} flexDirection="column" marginBottom={1}>
+/** The banner's logo: the block banner on Unicode terminals, the ASCII mark elsewhere. */
+function BannerLogo({ unicode }: { unicode: boolean }) {
+  const version = <Text color="gray"> v{REINER_VERSION}</Text>;
+  if (!unicode) {
+    return (
       <Text>
         <Text color={ACCENT} bold>
-          ✻ Reiner
-        </Text>{' '}
-        <Text color="gray">v{REINER_VERSION}</Text>
+          {LOGO_MARK_ASCII} reiner
+        </Text>
+        {version}
       </Text>
+    );
+  }
+  return (
+    <Box flexDirection="column">
+      {LOGO_BANNER.map((line, i) => (
+        <Text key={line}>
+          <Text color={ACCENT} bold>
+            {line}
+          </Text>
+          {i === LOGO_BANNER.length - 1 ? version : null}
+        </Text>
+      ))}
+    </Box>
+  );
+}
+
+export function Banner({ session, unicode = supportsUnicode() }: { session: Session; unicode?: boolean }) {
+  return (
+    <Box borderStyle="round" borderColor={ACCENT} paddingX={1} flexDirection="column" marginBottom={1}>
+      <BannerLogo unicode={unicode} />
+      <Text> </Text>
       <Text color="gray">
         Harness <Text color="white">{session.harness?.displayName ?? 'not picked yet'}</Text>
       </Text>

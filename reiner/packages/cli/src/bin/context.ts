@@ -6,6 +6,7 @@
  */
 import { type HarnessModule, REINER_VERSION } from '@co-reiner/core';
 import { Command } from 'commander';
+import { logoMark } from '../logo.ts';
 import { NO_HARNESSES, openSession, type Session } from '../session.ts';
 
 /** Where the project lives. REINER_CWD lets helper scripts run the CLI on behalf of another folder. */
@@ -17,7 +18,7 @@ export const status = (message: string) =>
 
 export const program = new Command()
   .name('reiner')
-  .description('Reiner: a terminal agent for AI harnesses that live in the browser')
+  .description(`${logoMark()} reiner: a terminal agent for AI harnesses that live in the browser`)
   .version(REINER_VERSION, '-v, --version')
   .option('--harness <id>', 'use this harness for this run instead of the project default')
   .option('--show-browser', "show the harness's browser window (the default)")
