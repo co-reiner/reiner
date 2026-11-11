@@ -1,9 +1,29 @@
 {
   "name": "@co-reiner/reiner",
-  "version": "0.0.0",
-  "description": "Reiner: take the reins of your AI harness. The reiner command with its harnesses (Microsoft 365 Copilot).",
+  "version": "0.0.1",
+  "description": "Reiner: take the reins of your AI harness. The reiner command with its harnesses: Microsoft 365 Copilot, and Google Search AI mode (experimental).",
+  "keywords": [
+    "reiner",
+    "ai",
+    "cli",
+    "agent",
+    "playwright",
+    "copilot",
+    "microsoft-365",
+    "google-search",
+    "terminal"
+  ],
   "license": "MIT",
   "author": "Alexandr Yeskov",
+  "homepage": "https://github.com/co-reiner/reiner/tree/main/reiner/packages/reiner#readme",
+  "bugs": {
+    "url": "https://github.com/co-reiner/reiner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/co-reiner/reiner.git",
+    "directory": "reiner/packages/reiner"
+  },
   "type": "module",
   "bin": {
     "reiner": "bin/reiner.js"
@@ -14,12 +34,16 @@
   "files": [
     "bin"
   ],
-  "dependencies": {
-    "@co-reiner/cli": "workspace:^",
-    "@co-reiner/harness-ms": "workspace:^"
-  },
   "engines": {
     "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@co-reiner/cli": "workspace:^",
+    "@co-reiner/harness-gs": "workspace:^",
+    "@co-reiner/harness-ms": "workspace:^"
   },
   "scripts": {
     "prepack": "node ../../scripts/copy-license.mjs"

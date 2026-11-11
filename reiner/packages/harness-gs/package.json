@@ -1,0 +1,47 @@
+{
+  "name": "@co-reiner/harness-gs",
+  "version": "0.0.1",
+  "description": "Reiner harness for the AI mode of Google Search (experimental). Not affiliated with or endorsed by Google.",
+  "keywords": [
+    "reiner",
+    "ai",
+    "harness",
+    "google-search",
+    "ai-mode",
+    "playwright"
+  ],
+  "license": "MIT",
+  "author": "Alexandr Yeskov",
+  "homepage": "https://github.com/co-reiner/reiner/tree/main/reiner/packages/harness-gs#readme",
+  "bugs": {
+    "url": "https://github.com/co-reiner/reiner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/co-reiner/reiner.git",
+    "directory": "reiner/packages/harness-gs"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@co-reiner/browser": "workspace:^",
+    "@co-reiner/core": "workspace:^",
+    "@mixmark-io/domino": "^2.2.0",
+    "playwright-core": "^1.65.0",
+    "turndown": "^7.2.5"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/copy-license.mjs"
+  }
+}

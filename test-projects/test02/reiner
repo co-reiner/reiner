@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Runs the Reiner CLI from source, with this folder as the project.
+here="$(cd "$(dirname "$0")" && pwd)"
+REINER_CWD="$here" exec node "$here/../../reiner/packages/reiner/bin/reiner.js" "$@"

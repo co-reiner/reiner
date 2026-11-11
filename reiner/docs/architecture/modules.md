@@ -227,6 +227,10 @@ the raw text a person would get. Code passed to `page.evaluate` must not define 
    the module is a full `ChatHarness`; otherwise bring its own list.
 5. Bundle it: add the package as a dependency of `packages/reiner/` and its entry to the list in
    `packages/reiner/bin/reiner.js` ([distribution](../architecture/tech-stack.md#distribution)).
+   A harness that is far from a full chat harness is a useful second example: `harness-gs` (Google
+   Search's AI mode) has no models, chat list or instructions, brings five commands of its own, and
+   exchanges files its own way (text in the prompt, or one uploaded text file) without
+   `exchange-packs`.
 6. Write `packages/harness-<vendor>/docs/`: its module, commands, settings keys, file exchange and live
    checks. Common docs only link to it.
 

@@ -63,7 +63,7 @@ flowchart TB
 | UI | `cli` | Core events only. Never touches the browser. |
 | Core | `core` | The module and command contracts, the tool protocol, config, and the rules every file exchange obeys (share rules, applying changes). No harness specifics, and no way of exchanging files of its own. |
 | Exchange | `exchange-packs` | One way a harness can exchange files: packs up, a diff or patch back. Used by harnesses that take uploads ([file-exchange.md](file-exchange.md)). |
-| Modules | `harness-<vendor>`, e.g. `harness-ms` (`m365-copilot`) | One harness each: URLs, selectors, how to send and read, the harness's slash commands, and its own docs in `docs/`. |
+| Modules | `harness-<vendor>`: `harness-ms` (`m365-copilot`), `harness-gs` (`google-search`, experimental) | One harness each: URLs, selectors, how to send and read, the harness's slash commands, and its own docs in `docs/`. |
 | Browser | `browser` | Launching Chromium with a profile, shared page helpers. |
 
 The diagram is the target. Today the chat and tool loop runs in the CLI (`tui/chat-loop.ts`), the four

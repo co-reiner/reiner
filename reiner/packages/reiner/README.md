@@ -77,9 +77,10 @@ for Microsoft 365 Copilot. The CLI on its own has no harness and is only useful 
 `@co-reiner/reiner` installs these harnesses. Each one's README lists its commands, settings and first
 steps.
 
-| Harness                    | Id             | Package and guide                                                              |
-| -------------------------- | -------------- | ------------------------------------------------------------------------------ |
-| Microsoft 365 Copilot Chat | `m365-copilot` | [`@co-reiner/harness-ms`](https://www.npmjs.com/package/@co-reiner/harness-ms) |
+| Harness                              | Id              | Package and guide                                                              |
+| ------------------------------------ | --------------- | ------------------------------------------------------------------------------ |
+| Microsoft 365 Copilot Chat           | `m365-copilot`  | [`@co-reiner/harness-ms`](https://www.npmjs.com/package/@co-reiner/harness-ms) |
+| Google Search AI mode (experimental) | `google-search` | [`@co-reiner/harness-gs`](https://www.npmjs.com/package/@co-reiner/harness-gs) |
 
 ## Getting started
 

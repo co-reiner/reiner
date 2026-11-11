@@ -97,6 +97,24 @@ importers:
         specifier: ^0.8.3
         version: 0.8.3
 
+  packages/harness-gs:
+    dependencies:
+      '@co-reiner/browser':
+        specifier: workspace:^
+        version: link:../browser
+      '@co-reiner/core':
+        specifier: workspace:^
+        version: link:../core
+      '@mixmark-io/domino':
+        specifier: ^2.2.0
+        version: 2.2.0
+      playwright-core:
+        specifier: ^1.65.0
+        version: 1.65.0
+      turndown:
+        specifier: ^7.2.5
+        version: 7.2.5
+
   packages/harness-ms:
     dependencies:
       '@co-reiner/browser':
@@ -123,6 +141,9 @@ importers:
       '@co-reiner/cli':
         specifier: workspace:^
         version: link:../cli
+      '@co-reiner/harness-gs':
+        specifier: workspace:^
+        version: link:../harness-gs
       '@co-reiner/harness-ms':
         specifier: workspace:^
         version: link:../harness-ms

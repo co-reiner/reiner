@@ -10,5 +10,6 @@ import { run } from '@co-reiner/cli/run';
 // Loaded after the CLI has registered tsx, because harness packages ship TypeScript source for now.
 await run(async () => {
   const { m365CopilotHarness } = await import('@co-reiner/harness-ms');
-  return [m365CopilotHarness];
+  const { googleSearchHarness } = await import('@co-reiner/harness-gs');
+  return [m365CopilotHarness, googleSearchHarness];
 });

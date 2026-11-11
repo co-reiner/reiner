@@ -20,6 +20,8 @@
     "live:instructions": "tsx packages/cli/live/instructions.live.ts",
     "live:tools": "tsx packages/cli/live/tools.live.ts",
     "live:refresh": "tsx packages/cli/live/refresh.live.ts",
+    "live:gs-explore": "tsx packages/harness-gs/live/explore.live.ts",
+    "live:gs-chat": "tsx packages/harness-gs/live/chat.live.ts",
     "build": "pnpm -r --filter ./packages/** run build"
   },
   "devDependencies": {

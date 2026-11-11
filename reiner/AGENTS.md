@@ -23,6 +23,8 @@ Read before changing anything substantial:
 - [docs/architecture/modules.md](docs/architecture/modules.md): the harness module contract and extension points
 - [docs/architecture/file-exchange.md](docs/architecture/file-exchange.md): who owns file exchange, share rules, applying changes, the search tools
 - [packages/exchange-packs/docs/packs.md](packages/exchange-packs/docs/packs.md): the pack exchange: packs, reply modes, instruction sections, the pack tools
+- [packages/harness-gs/docs/](packages/harness-gs/docs/README.md): the Google Search AI mode harness, an
+  experiment (module, robot checks, text and upload exchange, live checks)
 - [docs/plan.md](docs/plan.md): what is not built yet
 - [packages/harness-ms/docs/](packages/harness-ms/docs/README.md): the Microsoft 365 Copilot harness
   (module, commands, OneDrive file exchange, live checks)
@@ -32,7 +34,9 @@ Read before changing anything substantial:
 Early draft. The CLI runs from source with Microsoft 365 Copilot as the first harness: Ink TUI with
 streaming chat, the harness's slash commands plus Reiner's global ones, file exchange (packs, three reply
 modes, `/apply`), custom instruction sync, and the tool loop with `share_files`, `share_project`, `glob`
-and `grep`. From the shell: `reiner -p "<prompt>"`, `reiner <command> [args]` (any harness command once,
+and `grep`. A second, experimental harness drives Google Search's AI mode
+(`packages/harness-gs/`): it stops and hands over to the user when Google asks for a robot check, and
+nothing it sends names Reiner. From the shell: `reiner -p "<prompt>"`, `reiner <command> [args]` (any harness command once,
 `--json` for data), `reiner init`, `reiner harness`, `reiner status`. See [docs/plan.md](docs/plan.md)
 for what is not built yet. Docs marked **Built** describe the code; the rest is still proposed.
 
@@ -68,11 +72,14 @@ packages/
                   #                             its slash commands (commands/), its pack exchange with the
                   #                             OneDrive mode,
                   #                             its own docs (docs/)
+  harness-gs/     # @co-reiner/harness-gs  Google Search harness (experimental): the google-search module
+                  #                             (gs/), its own text and upload exchange (exchange/), its
+                  #                             commands and docs
   co-reiner/      # co-reiner                proxy package, depends on @co-reiner/reiner, no code
 docs/             # common architecture (with the reasons for each decision), plan
 ```
 
-`cli/` and `harness-ms/` also hold `live/`: checks against the real harness, not part of `pnpm test`.
+`cli/`, `harness-ms/` and `harness-gs/` also hold `live/`: checks against the real harness, not part of `pnpm test`.
 Besides the code headers' own links, these docs apply to a whole package:
 
 | Package | Docs |
@@ -80,6 +87,7 @@ Besides the code headers' own links, these docs apply to a whole package:
 | every package | [`../AGENTS.md`](../AGENTS.md) (the motto), this file, [overview](docs/architecture/overview.md), [tech stack](docs/architecture/tech-stack.md) |
 | `browser/` | [the live browser](docs/architecture/overview.md#harnesses-and-the-live-browser) |
 | `harness-ms/` | [harness modules](docs/architecture/modules.md), [the live browser](docs/architecture/overview.md#harnesses-and-the-live-browser), [its own docs](packages/harness-ms/docs/README.md) |
+| `harness-gs/` | [harness modules](docs/architecture/modules.md), [its own docs](packages/harness-gs/docs/README.md) |
 | `exchange-packs/` | [its own doc](packages/exchange-packs/docs/packs.md), [file exchange](docs/architecture/file-exchange.md), [harness modules: file exchange](docs/architecture/modules.md#file-exchange) |
 | `reiner/`, `cli/`, `co-reiner/` | [tech stack: distribution](docs/architecture/tech-stack.md#distribution) (the bundle and the bare CLI, lockstep releases, reserving the name) |
 
@@ -160,6 +168,9 @@ open. What each one does is in
 - `pnpm live:large-chat`, `pnpm live:transfer` (`MODES=diff` runs one mode), `pnpm live:instructions`
   (`REMOVE=1` takes the sections out; it changes the account), `pnpm live:tools` (`ONLY=share` or
   `ONLY=search` runs one part), `pnpm live:refresh` (a new file reaches the chat in a fresh full pack).
+- `pnpm live:gs-chat`, `pnpm live:gs-explore`: the Google Search harness, against `../test-projects/test02`
+  ([what they do](packages/harness-gs/docs/module.md#live-checks)). Send few prompts, and never answer or
+  work around a robot check: that is the user's.
 - Use the chat "Large Chat Test (Keep)" for live tests instead of creating new ones. Never delete or
   rename it. Only point `live:transfer` at a scratch project: it resets `src/` and `docs/` with git.
 
@@ -184,6 +195,8 @@ open. What each one does is in
   and harness cannot run together.
 - The window is visible by default. `--hide-browser`, `/browser hide` or `"browser": { "headless": true }`
   run it in the background; `--keep-browser` keeps a one-shot command's window open until you close it.
+- `"browser": { "keepSession": true }` launches with `--restore-last-session` so a session-cookie sign-in
+  survives a restart; `openProfile` closes the tabs that restores, so the one-tab rule still holds.
 
 ## Things to never do
 
