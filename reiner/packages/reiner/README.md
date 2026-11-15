@@ -105,6 +105,7 @@ their arguments.
 | `/harness [id]`       | Lists harnesses, or switches and makes it the project's default. |
 | `/status [--check]`   | Shows the project, harness, browser and sign-in.                 |
 | `/browser show\|hide` | Shows the browser window, or runs it in the background.          |
+| `/mcp [reload]`       | Lists your MCP servers and their tools; `reload` restarts them.  |
 | `/clear`, `/exit`     | Clears the screen; quits.                                        |
 
 Each harness adds its own commands (sign-in, chats, models, file exchange), listed first in `/help`. For
@@ -211,6 +212,27 @@ Reiner can run commands of your project for you, by name. Add them to `.reiner/c
   `package.json` or a script, Reiner asks again before the next run and names the files.
 - A task runs in your project folder with your access to the machine. It gets no environment variables
   that look like secrets, and it is stopped after 10 minutes unless you set `timeoutSeconds`.
+
+### MCP servers
+
+The model can also call the tools of MCP servers you set up, such as Figma's desktop server. Add them to
+`.reiner/config.jsonc` (or the global `~/.reiner/config.jsonc`):
+
+```jsonc
+"mcp": {
+  "servers": {
+    "figma": { "url": "http://127.0.0.1:3845/mcp", "allow": ["get_metadata"] },
+    "docs": { "command": "node", "args": ["tools/docs-server.js"] }
+  }
+}
+```
+
+- The servers start before your first prompt; `/mcp` shows them and their tools.
+- Reiner asks before the first call to each tool in a session, unless `allow` names it. A tool that may
+  change things on its server is asked about every time.
+- What a tool returns goes to the harness's model, and so to its vendor. Images (a Figma screenshot) are
+  uploaded with the answer; Microsoft 365 Copilot takes three files a message, so more go in parts.
+- A server you start with `command` runs with your access to the machine. Add only servers you trust.
 
 ## Trademarks
 

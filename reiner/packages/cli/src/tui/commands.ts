@@ -11,6 +11,7 @@ import { exitCommand } from './commands/exit.ts';
 import { harnessCommand } from './commands/harness.ts';
 import { helpCommand } from './commands/help.ts';
 import { fromHarness } from './commands/host.ts';
+import { mcpCommand } from './commands/mcp.ts';
 import { statusCommand } from './commands/status.ts';
 import type { SlashCommand } from './commands/types.ts';
 
@@ -26,6 +27,7 @@ export const GLOBAL_COMMANDS: SlashCommand[] = [
   harnessCommand,
   statusCommand,
   browserCommand,
+  mcpCommand,
   clearCommand,
   exitCommand,
 ];

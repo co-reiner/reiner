@@ -50,6 +50,8 @@ export function createCopilotModule(ctx: HarnessContext): ChatHarness {
   const self: ChatHarness = {
     id: 'm365-copilot',
     displayName,
+    // Copilot's prompt box takes at most three files with one message; the host sends more in parts.
+    maxAttachments: 3,
 
     start: (opts = {}) =>
       startResult(

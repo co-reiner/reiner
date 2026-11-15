@@ -83,6 +83,7 @@ reserved: a harness command with one of these names is dropped.
 | `/harness [name]` | List harnesses, or switch: closes the current window, opens the new harness, makes it the project default (built) |
 | `/status [--check]` | Project, harness, browser and sign-in (built) |
 | `/browser show\|hide` | Show the window or run it in the background; restarts the browser (built) |
+| `/mcp [reload]` | The MCP servers, their state and tools; `reload` restarts them from the config ([tool protocol](tool-protocol.md#external-tools-mcp)) |
 | `/clear` | Clear the screen (built) |
 | `/exit` | Quit and close the browser (built) |
 

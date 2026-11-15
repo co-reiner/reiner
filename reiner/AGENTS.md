@@ -134,7 +134,7 @@ organisation, and the unscoped npm proxy package `co-reiner`.
   (`hasCommand` in `packages/cli/src/tui/hints.ts`): the CLI must read well for any harness.
 - Slash commands that depend on what a harness can do live in its package (`HarnessModule.commands`,
   [harness commands](docs/architecture/modules.md#harness-commands)). The CLI keeps only global ones (`help`, `harness`,
-  `status`, `browser`, `clear`, `exit`), and a harness command never hides a global name.
+  `status`, `browser`, `mcp`, `clear`, `exit`), and a harness command never hides a global name.
 - Every tool call from a model is untrusted input: validate with zod, and route side effects
   (write, delete, shell) through the permission system.
 - Never log or print cookies, tokens, or the contents of `.reiner/profiles/`.

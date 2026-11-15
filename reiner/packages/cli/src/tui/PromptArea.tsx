@@ -94,6 +94,19 @@ export interface StatusInfo {
   openChat: ChatInfo | undefined;
 }
 
+/** The MCP servers, once started: how many tools, or that one failed. Nothing when none is set up. */
+function McpBadge({ session }: { session: Session }) {
+  const status = session.mcp.started()?.status() ?? [];
+  if (status.length === 0) return null;
+  const failed = status.filter((s) => s.state === 'failed').length;
+  const tools = status.reduce((n, s) => n + s.tools, 0);
+  return failed ? (
+    <Text color="yellow"> · MCP: {failed} failed (/mcp)</Text>
+  ) : (
+    <Text> · MCP: {tools} tools</Text>
+  );
+}
+
 function StatusLine({ session, browserOpen, signIn, preference, openChat }: StatusInfo) {
   return (
     <Box paddingLeft={2}>
@@ -102,7 +115,8 @@ function StatusLine({ session, browserOpen, signIn, preference, openChat }: Stat
         {browserOpen ? <Text color="green">● browser open</Text> : '○ browser closed'} ·{' '}
         <SignInBadge state={signIn} />
         {preference ? ` · model: ${preference.label}` : ''}
-        {openChat ? ` · chat: ${openChat.title || 'untitled'}` : ''} · /help
+        {openChat ? ` · chat: ${openChat.title || 'untitled'}` : ''}
+        <McpBadge session={session} /> · /help
       </Text>
     </Box>
   );
