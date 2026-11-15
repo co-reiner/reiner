@@ -25,6 +25,15 @@ The module sets `exchange` (the hook the host calls) and keeps the rest for its 
 `prepareTransfer`, `uploads` and `customInstructions` (`PackHarness` in `src/commands/types.ts`). From
 the page it fills in `send(prompt, { attachments })` and `ChatReply.downloads`.
 
+## Three files per message
+
+Copilot takes at most **three files with one message** (seen by the user). The module
+declares it as `maxAttachments: 3`, and the host sends a message with more files in parts: the first part
+says how many parts follow and asks the model to wait for the last one, and the last carries the text
+([tool protocol: messages in parts](../../../docs/architecture/tool-protocol.md#messages-in-parts)).
+Proposed, to build with the MCP wiring. A pack exchange message has at most one pack, so parts come from
+the images MCP tools return (Figma screenshots).
+
 ## Packs: `.zip.docx`
 
 - **Why `.zip.docx`:** Copilot's upload control does not accept `.zip`. A ZIP named `.docx` is accepted,

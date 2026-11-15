@@ -67,6 +67,8 @@ packages/
                   #                          tool protocol, glob/grep, share rules, applying changes
   exchange-packs/ # @co-reiner/exchange-packs  one way to exchange files, for harnesses that take uploads:
                   #                          packs, search index, reply modes, instruction sections
+  mcp/            # @co-reiner/mcp      the MCP client: the servers a project configures, their tools
+                  #                          under Reiner's names, calling them (the host answers the calls)
   browser/        # @co-reiner/browser  Playwright launcher, profile management, page helpers
   harness-ms/     # @co-reiner/harness-ms  Microsoft harness: the m365-copilot module (copilot/),
                   #                             its slash commands (commands/), its pack exchange with the
@@ -89,6 +91,7 @@ Besides the code headers' own links, these docs apply to a whole package:
 | `harness-ms/` | [harness modules](docs/architecture/modules.md), [the live browser](docs/architecture/overview.md#harnesses-and-the-live-browser), [its own docs](packages/harness-ms/docs/README.md) |
 | `harness-gs/` | [harness modules](docs/architecture/modules.md), [its own docs](packages/harness-gs/docs/README.md) |
 | `exchange-packs/` | [its own doc](packages/exchange-packs/docs/packs.md), [file exchange](docs/architecture/file-exchange.md), [harness modules: file exchange](docs/architecture/modules.md#file-exchange) |
+| `mcp/` | [tool protocol: external tools](docs/architecture/tool-protocol.md#external-tools-mcp), [project config: MCP servers](docs/architecture/project-config.md#mcp-servers) |
 | `reiner/`, `cli/`, `co-reiner/` | [tech stack: distribution](docs/architecture/tech-stack.md#distribution) (the bundle and the bare CLI, lockstep releases, reserving the name) |
 
 Product name in prose is **Reiner**, and the unattended runner in `../reiner-agent/` is **Reiner Agent**

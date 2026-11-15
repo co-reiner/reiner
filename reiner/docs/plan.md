@@ -39,6 +39,14 @@ in `packages/harness-ms/docs/`; an item is taken out of this list when it is bui
   output is sent.
 - Permission system: `permissions` in config, approval dialogs, `/permissions`.
 - Tool results larger than the prompt limit: paging, or sending them as a file.
+- MCP tools ([tool-protocol.md](architecture/tool-protocol.md#external-tools-mcp)). Built: the config,
+  the client (`@co-reiner/mcp`) and the hooks. Next: the CLI starts the servers with the session and
+  passes their names to `extractToolCalls`; the once-per-chat prompt line; a y/N the first time each tool
+  is used in a session (each time for one not marked read-only), and `allow`; `/mcp` with the servers'
+  state and tools; a status badge; messages in parts when a harness takes fewer files than a message
+  has (Copilot: 3, [tool protocol](architecture/tool-protocol.md#messages-in-parts)). Then the Figma trial: a live check against the desktop server, and
+  whether Copilot's models call tools they only saw in a prompt line. Later: remote servers with OAuth,
+  MCP resources and prompts, tools in `reiner -p`, servers whose tool list changes.
 
 ### TUI
 

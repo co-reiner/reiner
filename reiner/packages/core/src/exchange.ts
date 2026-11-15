@@ -26,6 +26,12 @@ export interface ToolRunOptions {
    * calls. Absent: tasks cannot be run here, and the call is answered so.
    */
   runTask?: (name: string, reason?: string) => Promise<ToolAnswer>;
+  /**
+   * Calls a tool the host offers from outside Reiner (an MCP server's) under its `<server>__<tool>` name,
+   * and returns what to tell the model. The host owns the servers and the y/N. Absent: such a call is
+   * answered as not available.
+   */
+  callExternal?: (name: string, args: Record<string, unknown>) => Promise<ToolAnswer>;
 }
 
 /**

@@ -9,6 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { applyEdits, modify, type ParseError, parse, printParseErrorCode } from 'jsonc-parser';
 import { z } from 'zod';
+import { McpSchema } from './mcp.ts';
 import type { TaskConfig } from './tools/tasks.ts';
 
 const BrowserSchema = z.object({
@@ -56,6 +57,8 @@ export const ConfigSchema = z.object({
    * change, or when the model asks for one with `run_task`. Read from the project's own config only.
    */
   tasks: z.record(z.string().regex(TASK_NAME), TaskSchema).default({}),
+  /** MCP servers whose tools the model may call, in the project's or the global config. */
+  mcp: McpSchema.default({ servers: {} }),
 });
 
 export type ReinerConfig = z.infer<typeof ConfigSchema>;

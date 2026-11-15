@@ -5,6 +5,8 @@
  * @see {@link ../../../harness-ms/docs/module.md#page-lessons | Copilot module: page lessons}
  */
 import { z } from 'zod';
+import { toolBlocks } from './blocks.ts';
+import { EXTERNAL_TOOL_NAME, type ExternalToolCall, externalCall } from './external.ts';
 import { GLOB_MAX_SPANS, GLOB_MAX_STARS, globSpans, globStars } from './glob.ts';
 
 /**
@@ -18,8 +20,6 @@ import { GLOB_MAX_SPANS, GLOB_MAX_STARS, globSpans, globStars } from './glob.ts'
  * input: it is parsed with zod, and the tool itself applies the share rules (share.ts) before anything
  * leaves the machine.
  */
-const TOOL_FENCE = 'reiner-tool';
-
 export const ShareFilesCall = z
   .object({
     tool: z.literal('share_files'),
@@ -102,47 +102,18 @@ const TOOL_NAMES = Object.keys(TOOLS) as (keyof typeof TOOLS)[];
 
 export interface ParsedTools {
   calls: ToolCall[];
+  /** Calls to tools the host offers from outside Reiner (an MCP server's), by the names it gave. */
+  external?: ExternalToolCall[];
   /** Blocks that were tagged as tool calls but did not parse, with the reason, to report back. */
   errors: string[];
-}
-
-const BLOCK = new RegExp(`^(\`{3,}|~{3,})[ \\t]*${TOOL_FENCE}[^\\n]*\\n([\\s\\S]*?)^\\1[ \\t]*$`, 'gm');
-
-/** Any fenced block, whatever its language label. */
-const ANY_BLOCK = /^(`{3,}|~{3,})[^\n]*\n([\s\S]*?)^\1[ \t]*$/gm;
-
-/**
- * The tool-call blocks in a reply. A block tagged `reiner-tool` counts anywhere. Copilot's page shows
- * code blocks with its own guessed language ("react", "json"…), so the tag can be lost on the way back:
- * then a reply that is nothing but one block holding a JSON object with a `name` and `arguments` counts
- * too. A JSON example inside a normal answer never does.
- */
-/** True for a JSON object that names a tool and gives its arguments: a call whose fence label was lost. */
-function looksLikeCall(body: string): boolean {
-  if (!body.startsWith('{')) return false;
-  try {
-    const o = JSON.parse(body) as Record<string, unknown> | null;
-    return typeof o === 'object' && o !== null && typeof o.name === 'string' && 'arguments' in o;
-  } catch {
-    return false;
-  }
-}
-
-function toolBlocks(markdown: string): string[] {
-  const tagged = [...markdown.matchAll(BLOCK)].map((m) => m[2] ?? '');
-  if (tagged.length) return tagged;
-  const all = [...markdown.matchAll(ANY_BLOCK)];
-  const only = all[0];
-  if (all.length !== 1 || !only) return [];
-  const outside = markdown.replace(only[0], '').trim();
-  const body = (only[2] ?? '').trim();
-  return outside === '' && looksLikeCall(body) ? [body] : [];
 }
 
 /** One block's JSON as a tool name, the id to answer with, and the arguments the tool's schema checks. */
 interface RawCall {
   tool: unknown;
   callId?: string;
+  /** The arguments as given, and with the tool's name added, as Reiner's own schemas read them. */
+  args: Record<string, unknown>;
   body: Record<string, unknown>;
 }
 
@@ -167,11 +138,17 @@ function readCall(json: unknown): RawCall | string {
   }
   if (typeof args !== 'object' || args === null || Array.isArray(args))
     return `${String(o.name)}: "arguments" must be a JSON object`;
-  return { tool: o.name, ...id, body: { ...(args as Record<string, unknown>), tool: o.name } };
+  const given = args as Record<string, unknown>;
+  return { tool: o.name, ...id, args: given, body: { ...given, tool: o.name } };
 }
 
-export function extractToolCalls(markdown: string): ParsedTools {
+/**
+ * The tool calls in a reply. `external` names the tools the host offers besides Reiner's own
+ * (`<server>__<tool>`); a call to one of those is passed on with its arguments as they are.
+ */
+export function extractToolCalls(markdown: string, external: readonly string[] = []): ParsedTools {
   const calls: ToolCall[] = [];
+  const outside: ExternalToolCall[] = [];
   const errors: string[] = [];
   let position = 0;
   for (const block of toolBlocks(markdown)) {
@@ -190,23 +167,33 @@ export function extractToolCalls(markdown: string): ParsedTools {
       continue;
     }
     const { tool } = raw;
+    if (typeof tool === 'string' && EXTERNAL_TOOL_NAME.test(tool) && external.includes(tool)) {
+      const call = externalCall(tool, raw.args, raw.callId ?? `call_${position}`);
+      if (typeof call === 'string') errors.push(call);
+      else outside.push(call);
+      continue;
+    }
     const schema =
       typeof tool === 'string' && Object.hasOwn(TOOLS, tool) ? TOOLS[tool as keyof typeof TOOLS] : undefined;
     if (!schema) {
-      errors.push(`unknown tool ${JSON.stringify(tool)}; available: ${TOOL_NAMES.join(', ')}`);
+      errors.push(
+        `unknown tool ${JSON.stringify(tool)}; available: ${[...TOOL_NAMES, ...external].join(', ')}`,
+      );
       continue;
     }
     const parsed = schema.safeParse(raw.body);
     if (parsed.success) calls.push({ ...parsed.data, callId: raw.callId ?? `call_${position}` });
     else errors.push(`${tool}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
   }
-  return { calls, errors };
+  return { calls, ...(outside.length ? { external: outside } : {}), errors };
 }
 
 /** What a tool call comes to: the lines of its `output`, and one line for the user about what was done. */
 export interface ToolAnswer {
   lines: string[];
   summary: string;
+  /** Files that go with the answer message (an image a tool returned). */
+  attachments?: string[];
 }
 
 /** The `call_id` Reiner answers with when a block could not be read as a call at all. */

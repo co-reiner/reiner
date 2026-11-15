@@ -122,6 +122,46 @@ Why it is safe to switch on:
 What it does not do: it does not isolate the run. A task has your user's access to the machine, as it
 does when you run it yourself.
 
+## MCP servers
+
+Built as configuration and a client (`@co-reiner/mcp`); the CLI does not start the servers
+or offer their tools yet ([plan.md](../plan.md)). `mcp.servers` names MCP servers whose tools the model
+may call ([tool-protocol.md](tool-protocol.md#external-tools-mcp)). It can be in the project's config or
+the global one; a project entry with the same name changes that server's keys.
+
+```jsonc
+{
+  "mcp": {
+    "servers": {
+      // Figma's desktop server: turn it on in the Figma desktop app (Dev Mode, MCP section).
+      "figma": { "url": "http://127.0.0.1:3845/mcp", "allow": ["get_metadata"] },
+      // A server Reiner starts itself.
+      "docs": { "command": "node", "args": ["tools/docs-server.js"] }
+    }
+  }
+}
+```
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `url` | | An HTTP server (MCP's streamable HTTP transport). `http` or `https` only. |
+| `command`, `args` | | A server Reiner starts, talking to it over stdin and stdout. Give `url` or `command`, not both. |
+| `env` | | Added to a small default environment (PATH, HOME and the like), not to all of Reiner's |
+| `cwd` | project root | Where a started server runs |
+| `enabled` | `true` | Off: not started, its tools not offered |
+| `allow` | `[]` | The server's own tool names that may run without a y/N |
+| `timeoutSeconds` | `120` | How long connecting, and each call, may take |
+
+A server name is letters, digits and `-`, at most 24 characters. The model sees each tool as
+`<server>__<tool>` (`figma__get_metadata`), so a name has no `_`.
+
+What to know before adding one:
+
+- **A started server is a program with your user's access**, like a task. Add only servers you trust.
+- **Its output goes to the harness's model**, and so to the harness's vendor, like any tool result.
+- **Its tool descriptions and output are untrusted text** for the model. A tool the server does not mark
+  as read-only will be asked about each time it is used, whatever `allow` says (planned).
+
 ## Search `include` and `exclude`
 
 Each harness's entry in `harnesses` can hold two lists of glob patterns for the model's `glob` and `grep` tools
