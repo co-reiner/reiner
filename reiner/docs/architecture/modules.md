@@ -77,6 +77,7 @@ TUI then skips reopening the last chat on start.
 | Models | `listModels`, `selectModel` | The module keeps the chosen model in its state folder (Copilot: `model.json`) and `start` re-applies it; the host only reads it to show the user (`CommandHost.modelPreference`) |
 | Chats | `newChat`, `listChats`, `openChat`, `currentChat`, `readHistory`, `renameChat`, `deleteChat` | Without `openChat` and `currentChat`, no last-chat reopen on start |
 | File exchange | `exchange` | The hook the host calls; see [File exchange](#file-exchange). Without it, prompts go as typed and only a diff written in a reply is offered |
+| Files per message | `maxAttachments` | The most files the page takes with one message (Copilot: 3). The host sends a message with more in parts ([tool protocol: messages in parts](tool-protocol.md#messages-in-parts)). Absent: no limit. Proposed |
 | Memory | `remembered` | Last sign-in state, model list, chosen model, recent chats, for the status line and suggestions |
 | Instructions | `customInstructions` | Without it, the sections can only travel in prompts |
 | Commands | `commands` | Without it, only the global commands |

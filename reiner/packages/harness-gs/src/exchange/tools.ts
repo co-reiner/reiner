@@ -5,6 +5,7 @@
  * @see {@link ../../../../docs/architecture/tool-protocol.md#who-answers-a-call | Tool protocol: who answers a call}
  */
 import {
+  answerExternalCalls,
   answerSearchCall,
   answerTaskCall,
   INVALID_CALL_ID,
@@ -92,6 +93,9 @@ export async function answerCalls(
       run.summary.push(answer.summary);
     }
   }
+  const external = await answerExternalCalls(parsed.external ?? [], opts, who);
+  run.lines.push(...external.lines);
+  run.summary.push(...external.summary);
   let carried = { text: '', attachments: [] as string[] };
   try {
     carried = await carry(ctx, [...run.files.values()]);
@@ -106,5 +110,6 @@ export async function answerCalls(
   const prompt = [...run.lines, ...(carried.text ? ['', carried.text, ''] : []), 'Continue the task.'].join(
     '\n',
   );
-  return { prepared: { prompt, attachments: carried.attachments }, summary: run.summary };
+  const attachments = [...carried.attachments, ...external.attachments];
+  return { prepared: { prompt, attachments }, summary: run.summary };
 }

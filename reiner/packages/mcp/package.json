@@ -1,0 +1,43 @@
+{
+  "name": "@co-reiner/mcp",
+  "version": "0.0.1",
+  "description": "Reiner MCP client: connects the MCP servers a project configures and answers the model's calls to their tools.",
+  "keywords": [
+    "reiner",
+    "ai",
+    "mcp",
+    "model-context-protocol",
+    "tools"
+  ],
+  "license": "MIT",
+  "author": "Alexandr Yeskov",
+  "homepage": "https://github.com/co-reiner/reiner/tree/main/reiner/packages/mcp#readme",
+  "bugs": {
+    "url": "https://github.com/co-reiner/reiner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/co-reiner/reiner.git",
+    "directory": "reiner/packages/mcp"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@co-reiner/core": "workspace:^",
+    "@modelcontextprotocol/sdk": "^1.32.2"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/copy-license.mjs"
+  }
+}

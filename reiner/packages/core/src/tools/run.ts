@@ -7,6 +7,7 @@
  */
 import type { PreparedPrompt, ToolRunOptions } from '../exchange.ts';
 import type { FileFilter } from '../transfer/share.ts';
+import { answerExternalCalls } from './external.ts';
 import { INVALID_CALL_ID, type ParsedTools, type ToolAnswer, type ToolCall, toolResult } from './protocol.ts';
 import { GLOB_LIMIT, GREP_LIMIT, globFiles, grepFiles, searchFilter } from './search.ts';
 
@@ -149,5 +150,12 @@ export async function runSearchTools(
       summary.push(answer.summary);
     }
   }
-  return { prepared: { prompt: [...lines, 'Continue the task.'].join('\n'), attachments: [] }, summary };
+  const external = await answerExternalCalls(parsed.external ?? [], opts, opts.who);
+  return {
+    prepared: {
+      prompt: [...lines, ...external.lines, 'Continue the task.'].join('\n'),
+      attachments: external.attachments,
+    },
+    summary: [...summary, ...external.summary],
+  };
 }

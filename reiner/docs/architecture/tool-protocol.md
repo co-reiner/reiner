@@ -70,6 +70,8 @@ What the parser allows for:
   them: `answerSearchCall` in `core/src/tools/run.ts`.
 - **`run_task` is the host's.** Whoever answers a reply's calls passes it to the host
   (`ToolRunOptions.runTask`), which owns the project's config and the y/N ([below](#project-tasks)).
+- **An MCP server's tools (`<server>__<tool>`) are the host's** too, through `ToolRunOptions.callExternal`
+  ([below](#external-tools-mcp)).
 - **`share_files` and `share_project` are an exchange's.** They send files, and how files are sent is the
   harness's business ([file-exchange.md](file-exchange.md)).
 - A harness with an exchange has it answer every call in a reply (`ProjectExchange.runTools`); the pack
@@ -105,6 +107,40 @@ other argument is dropped.
 Why names and not commands: everything a model writes is untrusted. With a free command, one poisoned
 file and one tired "y" would be enough. With names, the worst a model can do is run your own tests.
 
+## External tools (MCP)
+
+Built: the client, `@co-reiner/mcp`, and the hooks in core and both exchanges. Proposed: the
+CLI starting the servers, the prompt line, the y/N and `/mcp` ([plan.md](../plan.md)).
+
+Besides its own tools, Reiner can offer the tools of MCP servers the user configures
+([project-config.md](project-config.md#mcp-servers)), Figma's desktop server first. The model calls one
+like any other tool, in the same function-call shape, under the name `<server>__<tool>`:
+`{"name":"figma__get_metadata","arguments":{"nodeId":"1:2"}}`.
+
+- **Who answers.** The host, like `run_task`: it owns the servers, so `ToolRunOptions.callExternal` takes
+  the call, and every exchange passes such calls to it (`answerExternalCalls` in
+  `core/src/tools/external.ts`). Without the hook the model is told the tool is not available.
+- **Parsing.** `extractToolCalls(markdown, names)` reads a call to one of the names the host gives as an
+  external call. The `__` keeps those names apart from Reiner's own tools, which always win. The arguments
+  are passed on as given (up to 20,000 characters of JSON): the server checks them against its own schema,
+  and its error goes back to the model. A `reason`, which Reiner's own tools take, is dropped unless the
+  tool has one.
+- **Results.** Text as it is, capped at 20,000 characters with a note on what was left out. An image (a
+  Figma screenshot) is saved and goes with the answer message as an attachment; a harness that cannot
+  upload gets a line saying it was left out. Several images can pass the harness's limit on files per
+  message; the answer then goes in parts ([messages in parts](#messages-in-parts)). A tool error (`isError`) goes back as `error: …`, so the
+  model can try again (Figma answers "Nothing is selected" without a `nodeId`).
+- **Servers.** Each one is connected at the start and its tools listed. One that fails to connect is
+  reported and left out; the others work. A started process's error output is kept, never printed, so it
+  cannot break the TUI.
+- **Teaching the model (proposed).** As with tasks, not in the saved instructions: once per chat the
+  prompt gets a line with each tool's name and its argument names. The descriptions (Figma's run to 1,300
+  characters each) stay out; they are long, and untrusted text.
+
+**Why this is not reverse-engineering.** The motto is about the harness: Copilot is still
+only driven through its page. An MCP server is a tool the user chose to run, like `grep`, and MCP is the
+way it is meant to be called. Nothing is taken from the browser.
+
 ## Result format (built)
 
 Reiner answers in one plain user message, not in a code block: the facts line every Reiner message
@@ -123,11 +159,35 @@ Continue the task.
 | `output` | The result as text: what was attached, the matching paths or lines, or why the call was refused. Line breaks inside it are JSON-escaped. |
 
 A pack that answers a call goes with the message as an attachment, as with any prompt; the `output` names
-it. At most 3 tool rounds follow one prompt.
+it. So does an image an MCP tool returns. A message with more files than the harness takes goes in parts
+([below](#messages-in-parts)). At most 3 tool rounds follow one prompt.
 
 Known cost: because `output` is a JSON string, quotes and backslashes in `grep` lines are escaped. The
 live check (`pnpm live:tools`) has not been run since the change; if the model misreads escaped lines,
 the output can go back to plain text under the item.
+
+## Messages in parts
+
+Proposed, to build with the MCP wiring ([plan.md](../plan.md)). A harness can take only so
+many files with one message: Copilot takes at most three
+([its file exchange](../../packages/harness-ms/docs/file-exchange.md#three-files-per-message)). A module
+says so in `HarnessModule.maxAttachments`, and the host keeps to it for every message it sends, a typed
+prompt or a tool answer: when a message has more files, it goes in parts.
+
+- **Part 1** starts with what to expect: "This answer is too large for one message, so it comes in 3
+  parts. Wait for part 3 before you continue, and reply to the parts before it only with "waiting"."
+  It carries the first files.
+- **The parts between** say "Part 2 of 3." and carry the next files.
+- **The last part** says "Part 3 of 3, the last." and carries the rest of the files and the whole text
+  of the answer (the facts line, the tool results, "Continue the task."), so the model reads the text
+  with every file already in the chat.
+- **Replies to the earlier parts are not read** for tool calls or changes. They are shown to the user,
+  and a part that was stopped (Esc) stops the rest. Only the reply to the last part goes on as usual.
+- **Order.** The files keep their order: a pack first, then the images a tool returned.
+
+Why the host and not each exchange: the limit is the harness's page, every exchange's message meets it,
+and an MCP tool can add images to any of them. Why the text goes last: a model that reads the request
+before its files arrive tends to answer at once, without them.
 
 ## Lessons from the live tests
 

@@ -6,6 +6,7 @@
  */
 import path from 'node:path';
 import {
+  answerExternalCalls,
   answerSearchCall,
   answerTaskCall,
   INVALID_CALL_ID,
@@ -69,6 +70,10 @@ export async function runTools(
   const whole = parsed.calls.filter((c) => c.tool === 'share_project');
   const rest = parsed.calls.filter((c) => c.tool !== 'share_project');
   for (const call of [...whole, ...rest]) await runOne(run, call);
+  // Not pack tools either: the host calls the external tools; an image one returns goes with the pack.
+  const external = await answerExternalCalls(parsed.external ?? [], opts, run.who);
+  run.lines.push(...external.lines);
+  run.summary.push(...external.summary);
   const facts = promptFacts({
     project: projectName(ctx),
     sequence: pad3(s.sequence),
@@ -77,7 +82,7 @@ export async function runTools(
   return {
     prepared: {
       prompt: [facts, ...run.lines, 'Continue the task.'].join('\n'),
-      attachments: run.pack ? [run.pack.file] : [],
+      attachments: [...(run.pack ? [run.pack.file] : []), ...external.attachments],
       notes: run.pack ? packNotes(run.pack) : [],
       ...(run.pack ? { pack: run.pack } : {}),
       ...(run.view ? { view: run.view } : {}),
