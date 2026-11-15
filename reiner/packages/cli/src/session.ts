@@ -4,7 +4,6 @@
  * @see {@link ../../../docs/architecture/overview.md#harnesses-and-the-live-browser | Architecture overview: harnesses and the live browser}
  */
 import { existsSync } from 'node:fs';
-import { appendFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import {
   activeHarness,
@@ -26,6 +25,10 @@ import {
   writeState,
 } from '@co-reiner/core';
 import { installedHarnesses } from './harnesses.ts';
+import { createMcpSession, type McpSession, type McpSessionOptions } from './mcp.ts';
+import { createTranscript, type Transcript } from './transcript.ts';
+
+export type { Transcript, TranscriptEntry } from './transcript.ts';
 
 export interface Session {
   root: string;
@@ -66,36 +69,8 @@ export interface Session {
   tasks(): Promise<Record<string, TaskConfig>>;
   /** This run's transcript, `.reiner/sessions/<started>/transcript.jsonl`. Local only. */
   transcript: Transcript;
-}
-
-export interface TranscriptEntry {
-  role: 'user' | 'assistant' | 'event';
-  text: string;
-  harness?: string;
-  model?: string;
-  stopped?: boolean;
-  elapsedMs?: number;
-}
-
-export interface Transcript {
-  file: string;
-  append(entry: TranscriptEntry): Promise<void>;
-}
-
-function createTranscript(sessionsDir: string): Transcript {
-  const id = new Date().toISOString().replace(/[:.]/g, '-');
-  const dir = path.join(sessionsDir, id);
-  const file = path.join(dir, 'transcript.jsonl');
-  return {
-    file,
-    // Never rejects: callers do not wait for it, and an unwritable transcript must not end the session.
-    async append(entry) {
-      try {
-        await mkdir(dir, { recursive: true });
-        await appendFile(file, `${JSON.stringify({ at: new Date().toISOString(), ...entry })}\n`, 'utf8');
-      } catch {}
-    },
-  };
+  /** The MCP servers in the config, started when first needed. */
+  mcp: McpSession;
 }
 
 export interface OpenSessionOptions {
@@ -104,6 +79,8 @@ export interface OpenSessionOptions {
   /** Installed harnesses. Tests pass fakes. */
   registry?: HarnessEntry[];
   globalConfigFile?: string;
+  /** How MCP servers are reached. Tests pass servers in memory. */
+  mcpConnect?: McpSessionOptions['connect'];
 }
 
 /** The project folder, its `.reiner/` paths, a config loader, and what to tell the user about setting up. */
@@ -243,6 +220,11 @@ export async function openSession(start: string, opts: OpenSessionOptions = {}):
     },
     tasks: async () => (await load()).tasks,
     transcript: createTranscript(paths.sessionsDir),
+    mcp: createMcpSession(load, {
+      root,
+      imageDir: path.join(paths.reinerDir, 'mcp', 'images'),
+      ...(opts.mcpConnect ? { connect: opts.mcpConnect } : {}),
+    }),
   };
   return session;
 }

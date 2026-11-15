@@ -181,6 +181,11 @@ export interface HarnessModule {
   /** Slash commands this harness adds, listed before the host's global ones. */
   commands?: HarnessCommand[];
   /**
+   * The most files the harness's page takes with one message (Copilot: 3). The host sends a message with
+   * more in parts (`messageParts`). Absent: no limit.
+   */
+  maxAttachments?: number;
+  /**
    * Open the browser on the harness (if not already open) and check sign-in. With `chatId`, open that chat
    * straight away and keep the model it shows (no model is applied first); without, re-apply the saved
    * model. A harness without chats ignores `chatId`.

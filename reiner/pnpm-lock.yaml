@@ -47,6 +47,9 @@ importers:
       '@co-reiner/core':
         specifier: workspace:^
         version: link:../core
+      '@co-reiner/mcp':
+        specifier: workspace:^
+        version: link:../mcp
       commander:
         specifier: ^15.1.0
         version: 15.1.0

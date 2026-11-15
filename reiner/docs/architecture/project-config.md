@@ -124,8 +124,7 @@ does when you run it yourself.
 
 ## MCP servers
 
-Built as configuration and a client (`@co-reiner/mcp`); the CLI does not start the servers
-or offer their tools yet ([plan.md](../plan.md)). `mcp.servers` names MCP servers whose tools the model
+Built. `mcp.servers` names MCP servers whose tools the model
 may call ([tool-protocol.md](tool-protocol.md#external-tools-mcp)). It can be in the project's config or
 the global one; a project entry with the same name changes that server's keys.
 
@@ -160,7 +159,8 @@ What to know before adding one:
 - **A started server is a program with your user's access**, like a task. Add only servers you trust.
 - **Its output goes to the harness's model**, and so to the harness's vendor, like any tool result.
 - **Its tool descriptions and output are untrusted text** for the model. A tool the server does not mark
-  as read-only will be asked about each time it is used, whatever `allow` says (planned).
+  as read-only is asked about each time it is used, whatever `allow` says.
+- **Images it returns are saved** in `.reiner/mcp/images/` and uploaded with the answer.
 
 ## Search `include` and `exclude`
 

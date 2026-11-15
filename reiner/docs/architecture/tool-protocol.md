@@ -109,8 +109,9 @@ file and one tired "y" would be enough. With names, the worst a model can do is 
 
 ## External tools (MCP)
 
-Built: the client, `@co-reiner/mcp`, and the hooks in core and both exchanges. Proposed: the
-CLI starting the servers, the prompt line, the y/N and `/mcp` ([plan.md](../plan.md)).
+Built: the client, `@co-reiner/mcp`, and the hooks in core and both exchanges; the TUI
+starting the servers, the prompt line, the y/N, `/mcp` and the status badge. Not yet: a live
+check with Copilot, and MCP tools in `reiner -p` ([plan.md](../plan.md)).
 
 Besides its own tools, Reiner can offer the tools of MCP servers the user configures
 ([project-config.md](project-config.md#mcp-servers)), Figma's desktop server first. The model calls one
@@ -130,12 +131,18 @@ like any other tool, in the same function-call shape, under the name `<server>__
   upload gets a line saying it was left out. Several images can pass the harness's limit on files per
   message; the answer then goes in parts ([messages in parts](#messages-in-parts)). A tool error (`isError`) goes back as `error: …`, so the
   model can try again (Figma answers "Nothing is selected" without a `nodeId`).
-- **Servers.** Each one is connected at the start and its tools listed. One that fails to connect is
+- **Servers.** The TUI starts them before the first prompt that needs them (`cli/src/mcp.ts`), and
+  closes them on quit; `/mcp` lists them with their tools, and `/mcp reload` restarts them from the
+  config. Each one is connected and its tools listed. One that fails to connect is
   reported and left out; the others work. A started process's error output is kept, never printed, so it
   cannot break the TUI.
-- **Teaching the model (proposed).** As with tasks, not in the saved instructions: once per chat the
-  prompt gets a line with each tool's name and its argument names. The descriptions (Figma's run to 1,300
-  characters each) stay out; they are long, and untrusted text.
+- **Teaching the model.** As with tasks, not in the saved instructions: once per chat the prompt gets a
+  line with each tool's name and its argument names, optional ones marked `?`
+  (`figma__get_metadata(nodeId?, …)`); past 1,500 characters, the names only. The descriptions (Figma's
+  run to 1,300 characters each) stay out; they are long, and untrusted text.
+- **Asking.** A read-only tool (`readOnlyHint`) is asked about the first time it is used in a session,
+  unless the server's `allow` names it. A tool that may change things is asked about every time, whatever
+  `allow` says. The question names the server, the tool and its arguments (`cli/src/tui/mcp-tools.ts`).
 
 **Why this is not reverse-engineering.** The motto is about the harness: Copilot is still
 only driven through its page. An MCP server is a tool the user chose to run, like `grep`, and MCP is the
@@ -168,7 +175,7 @@ the output can go back to plain text under the item.
 
 ## Messages in parts
 
-Proposed, to build with the MCP wiring ([plan.md](../plan.md)). A harness can take only so
+Built. A harness can take only so
 many files with one message: Copilot takes at most three
 ([its file exchange](../../packages/harness-ms/docs/file-exchange.md#three-files-per-message)). A module
 says so in `HarnessModule.maxAttachments`, and the host keeps to it for every message it sends, a typed
@@ -182,7 +189,10 @@ prompt or a tool answer: when a message has more files, it goes in parts.
   of the answer (the facts line, the tool results, "Continue the task."), so the model reads the text
   with every file already in the chat.
 - **Replies to the earlier parts are not read** for tool calls or changes. They are shown to the user,
-  and a part that was stopped (Esc) stops the rest. Only the reply to the last part goes on as usual.
+  and a part that was stopped (Esc) stops the rest; the message is then not recorded as sent. Only the
+  reply to the last part goes on as usual.
+- **Where the code is.** `messageParts` in `core/src/parts.ts` makes the parts; `sendRound` in
+  `cli/src/tui/send.ts` sends them.
 - **Order.** The files keep their order: a pack first, then the images a tool returned.
 
 Why the host and not each exchange: the limit is the harness's page, every exchange's message meets it,
