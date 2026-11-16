@@ -65,7 +65,7 @@ export function registerMain(): void {
     const { App } = await import('../tui/App.tsx');
     const app = render(createElement(App, { session }), { exitOnCtrlC: true });
     await app.waitUntilExit();
-    await session.mcp.close();
+    await Promise.all(session.plugins.map((p) => p.session.close().catch(() => {})));
     if (session.module?.isOpen()) {
       process.stdout.write('Closing the browser…\n');
       await stopWithin(session.module, 10_000);

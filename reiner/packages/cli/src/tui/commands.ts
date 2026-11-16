@@ -1,17 +1,20 @@
 /**
  * @file The TUI's slash command list: the harness's commands first, then the global ones, whose names
- * stay reserved.
+ * stay reserved, then the plugins' commands.
  * @see {@link ../../../../docs/architecture/cli-ux.md#harness-commands | CLI and TUI: harness commands}
  * @see {@link ../../../../docs/architecture/modules.md#harness-commands | Harness modules: harness commands}
  */
 import type { HarnessModule } from '@co-reiner/core';
+import { installedPlugins } from '../plugins.ts';
 import { browserCommand } from './commands/browser.ts';
 import { clearCommand } from './commands/clear.ts';
+import { continueCommand } from './commands/continue.ts';
 import { exitCommand } from './commands/exit.ts';
 import { harnessCommand } from './commands/harness.ts';
 import { helpCommand } from './commands/help.ts';
 import { fromHarness } from './commands/host.ts';
-import { mcpCommand } from './commands/mcp.ts';
+import { fromPlugin } from './commands/plugin.ts';
+import { roundsCommand } from './commands/rounds.ts';
 import { statusCommand } from './commands/status.ts';
 import type { SlashCommand } from './commands/types.ts';
 
@@ -27,20 +30,27 @@ export const GLOBAL_COMMANDS: SlashCommand[] = [
   harnessCommand,
   statusCommand,
   browserCommand,
-  mcpCommand,
+  continueCommand,
+  roundsCommand,
   clearCommand,
   exitCommand,
 ];
 
 const isGlobal = (name: string) => GLOBAL_COMMANDS.some((g) => g.name === name);
 
-/** Commands for the active harness: the harness's own first, then the global ones. */
+/**
+ * Commands for the active harness: the harness's own first, then the global ones, then the plugins'. Neither
+ * a harness nor a plugin command hides a global one, and a plugin command never hides a harness one.
+ */
 export function commandsFor(module: HarnessModule | null | undefined): SlashCommand[] {
-  // A harness command never hides a global one: Reiner's own names stay reserved.
   const own = module
     ? (module.commands ?? []).filter((c) => !isGlobal(c.name)).map((c) => fromHarness(c, module))
     : [];
-  return [...own, ...GLOBAL_COMMANDS];
+  const taken = new Set([...own, ...GLOBAL_COMMANDS].map((c) => c.name));
+  const plugins = installedPlugins().flatMap((p) =>
+    (p.commands ?? []).filter((c) => !taken.has(c.name)).map((c) => fromPlugin(c, p)),
+  );
+  return [...own, ...GLOBAL_COMMANDS, ...plugins];
 }
 
 export function matchCommands(input: string, module?: HarnessModule | null): SlashCommand[] {

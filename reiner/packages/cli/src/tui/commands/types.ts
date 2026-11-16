@@ -5,6 +5,7 @@
  */
 import type { ChatInfo, CommandChoice, PickOption, SignInState } from '@co-reiner/core';
 import type { Session } from '../../session.ts';
+import type { ChatStart } from '../chat-loop.ts';
 import type { ChecksState } from '../checks.ts';
 import type { Entry } from '../entries.ts';
 
@@ -12,8 +13,11 @@ export interface CommandApi {
   session: Session;
   /** What the project's checks remember this session (approvals, files a patch changed). */
   checks: ChecksState;
-  /** Send a prompt as a chat turn, e.g. the output of a failing check. Absent where there is no chat. */
-  chat?(text: string): Promise<void>;
+  /**
+   * Send a prompt as a chat turn, e.g. the output of a failing check, or pick up the open chat's last reply
+   * again (`{ lastReply: true }`). Absent where there is no chat.
+   */
+  chat?(start: ChatStart): Promise<void>;
   print(entry: Entry): void;
   /** Show a spinner with this label, or clear it with null. */
   busy(label: string | null): void;
@@ -24,6 +28,11 @@ export interface CommandApi {
   confirm(question: string): Promise<boolean>;
   /** Let the user tick options under the prompt; resolves the ticked indexes (empty on Esc). */
   pick(question: string, options: PickOption[]): Promise<number[]>;
+  /**
+   * Like `pick`, starting from the `ticked` rows: resolves the ticked indexes, or undefined on Esc, so
+   * unticking everything is an answer of its own.
+   */
+  choose(question: string, options: PickOption[], ticked: number[]): Promise<number[] | undefined>;
   /** Tell the status line which chat is open (undefined for a new, unsaved chat). */
   setChat(chat: ChatInfo | undefined): void;
   /** Make another harness active: closes the current browser, opens the new one. */

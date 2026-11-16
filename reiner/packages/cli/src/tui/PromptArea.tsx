@@ -9,7 +9,7 @@ import type { Session } from '../session.ts';
 import type { Question } from './command-api.ts';
 import { SignInBadge } from './EntryView.tsx';
 import { PromptInput } from './PromptInput.tsx';
-import type { PickQuestion } from './pick.ts';
+import { groupItems, type PickQuestion } from './pick.ts';
 import type { Suggestion } from './suggestions.ts';
 
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
@@ -27,11 +27,21 @@ function Spinner({ label }: { label: string }) {
 function PickBox({ question }: { question: PickQuestion }) {
   const all = question.options.length > 0 && question.ticked.length === question.options.length;
   const rows = [
-    { key: '-all', label: '(Select all)', ticked: all, detail: undefined as string | undefined },
+    {
+      key: '-all',
+      label: '(Select all)',
+      ticked: all,
+      partly: false,
+      detail: undefined as string | undefined,
+    },
     ...question.options.map((o, i) => ({
       key: `${i}`,
-      label: o.label,
+      label: o.indent ? `  ${o.label}` : o.label,
       ticked: question.ticked.includes(i),
+      // A group with some of its items ticked.
+      partly:
+        !question.ticked.includes(i) &&
+        groupItems(question.options, i).some((j) => question.ticked.includes(j)),
       detail: o.detail,
     })),
   ];
@@ -44,7 +54,9 @@ function PickBox({ question }: { question: PickQuestion }) {
       {rows.map((r, i) => (
         <Text key={r.key}>
           <Text color="cyan">{i === question.cursor ? '❯ ' : '  '}</Text>
-          <Text color={r.ticked ? 'green' : 'gray'}>{r.ticked ? '[x] ' : '[ ] '}</Text>
+          <Text color={r.ticked ? 'green' : r.partly ? 'yellow' : 'gray'}>
+            {r.ticked ? '[x] ' : r.partly ? '[-] ' : '[ ] '}
+          </Text>
           <Text bold={i === question.cursor}>{r.label}</Text>
           {r.detail ? <Text color="gray"> · {r.detail}</Text> : null}
         </Text>
@@ -94,16 +106,21 @@ export interface StatusInfo {
   openChat: ChatInfo | undefined;
 }
 
-/** The MCP servers, once started: how many tools, or that one failed. Nothing when none is set up. */
-function McpBadge({ session }: { session: Session }) {
-  const status = session.mcp.started()?.status() ?? [];
-  if (status.length === 0) return null;
-  const failed = status.filter((s) => s.state === 'failed').length;
-  const tools = status.reduce((n, s) => n + s.tools, 0);
-  return failed ? (
-    <Text color="yellow"> · MCP: {failed} failed (/mcp)</Text>
-  ) : (
-    <Text> · MCP: {tools} tools</Text>
+/** What each plugin says about itself in a few words (yellow when it needs attention); nothing when silent. */
+function PluginBadges({ session }: { session: Session }) {
+  return (
+    <>
+      {session.plugins.map((p) => {
+        const status = p.session.status();
+        if (!status) return null;
+        return (
+          <Text key={p.plugin.id} {...(status.warn ? { color: 'yellow' } : {})}>
+            {' '}
+            · {status.text}
+          </Text>
+        );
+      })}
+    </>
   );
 }
 
@@ -116,7 +133,7 @@ function StatusLine({ session, browserOpen, signIn, preference, openChat }: Stat
         <SignInBadge state={signIn} />
         {preference ? ` · model: ${preference.label}` : ''}
         {openChat ? ` · chat: ${openChat.title || 'untitled'}` : ''}
-        <McpBadge session={session} /> · /help
+        <PluginBadges session={session} /> · /help
       </Text>
     </Box>
   );

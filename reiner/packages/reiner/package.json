@@ -43,7 +43,8 @@
   "dependencies": {
     "@co-reiner/cli": "workspace:^",
     "@co-reiner/harness-gs": "workspace:^",
-    "@co-reiner/harness-ms": "workspace:^"
+    "@co-reiner/harness-ms": "workspace:^",
+    "@co-reiner/mcp": "workspace:^"
   },
   "scripts": {
     "prepack": "node ../../scripts/copy-license.mjs"

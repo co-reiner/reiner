@@ -182,6 +182,11 @@ export const FILE_CARD_NAME = `${FILE_CARD_TITLE} [title]`;
 export const fileCardNamed = (name: string) =>
   `${FILE_CARD}:has(${FILE_CARD_TITLE} [title="${name.replace(/["\\]/g, '\\$&')}"])`;
 export const FILE_CARD_MORE = 'button[aria-label="More actions"]';
+/**
+ * While Copilot's preview panel shows a file, its card shrinks to this one button and has no "More actions"
+ *.
+ */
+export const FILE_CARD_CLOSE_PREVIEW = 'button[aria-label="Close preview"]';
 export const MENU_ITEM = '[role="menuitem"]';
 export const FILE_CARD_DOWNLOAD = 'Download';
 

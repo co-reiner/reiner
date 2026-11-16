@@ -24,18 +24,12 @@ export interface ChecksState {
   suspect: Set<string>;
   /** Chats that have been told which tasks exist. */
   told: Set<string>;
-  /** Read-only MCP tools the user has agreed to, this session. */
-  mcpApproved: Set<string>;
-  /** Chats that have been told which MCP tools exist. */
-  mcpTold: Set<string>;
 }
 
 export const newChecksState = (): ChecksState => ({
   approved: new Set(),
   suspect: new Set(),
   told: new Set(),
-  mcpApproved: new Set(),
-  mcpTold: new Set(),
 });
 
 /** What the checks need of the TUI: the session, a place to print, the spinner and the y/N question. */

@@ -40,7 +40,10 @@ return (Figma screenshots).
   and the model opens it as a ZIP when told to. The `files` instruction section says so.
 - **Uploading:** through the "+" menu's "Upload images and files" item, the same file chooser a user gets.
   Copilot keeps every upload in OneDrive under `Microsoft Copilot Chat Files` (setting `uploadsFolder`).
-  The upload counts as done when the attachment chip gets an `SPO_…` id.
+  The upload counts as done when the attachment chip gets an `SPO_…` id. An image (`.png`, `.jpg`,
+  `.gif`, `.webp`, `.bmp`, such as an MCP tool's screenshot) is not stored in OneDrive: Copilot keeps it in
+  the page as an inline thumbnail, and its chip keeps a plain id. It counts as done once a chip labelled with
+  its name shows (before, Reiner waited for an `SPO_` id that never came).
 - **One name, replaced in place:** the full pack is always `<project>.zip.docx`, so refreshing it does not
   leave a copy per refresh in OneDrive. Copilot's upload control never replaces: a repeated name is
   renamed (`<name>.zip <number>.docx`), which hides the `.zip` from the model. So before each upload the module opens
@@ -69,7 +72,10 @@ by a name its text contains, so `a.zip` never picks `data.zip`.
 ("Saved in … OneDrive") with no link: its name is the card title, and Reiner downloads it through the
 card's own **More actions** menu, item **Download** (selectors `FILE_CARD`, `fileCardNamed`). Every mode
 counts cards: `download` (and `diff`, which fetches through it) takes them with the links, and `onedrive`
-tries the card first and opens OneDrive's page only for a name no card offered. Copilot sometimes shows the same card twice
+tries the card first and opens OneDrive's page only for a name no card offered. While Copilot's preview
+panel shows the file (a generated PowerPoint opens there), its card shrinks to a **Close preview** button
+with no **More actions**; Reiner closes the preview first (`FILE_CARD_CLOSE_PREVIEW`).
+Copilot sometimes shows the same card twice
 in one reply; each name is downloaded once, from the last card. Only files after the newest prompt count,
 not that prompt's own attachments. A reply read back from the history after a restart (`/apply`) has
 no list of files, so its files are read from the page then.

@@ -1,6 +1,6 @@
 /**
- * @file Calls to tools that are not Reiner's own (an MCP server's), under the names the host offers: reading
- * them out of a reply and answering them through the host.
+ * @file Calls to tools that are not Reiner's own (a plugin's, such as an MCP server's), under the names the
+ * host offers: reading them out of a reply and answering them through the host.
  * @see {@link ../../../../docs/architecture/tool-protocol.md#external-tools-mcp | Tool protocol: external tools (MCP)}
  */
 import type { ToolRunOptions } from '../exchange.ts';

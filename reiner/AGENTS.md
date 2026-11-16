@@ -22,6 +22,7 @@ Read before changing anything substantial:
 - [docs/architecture/tool-protocol.md](docs/architecture/tool-protocol.md): how the model calls our tools
 - [docs/architecture/modules.md](docs/architecture/modules.md): the harness module contract and extension points
 - [docs/architecture/file-exchange.md](docs/architecture/file-exchange.md): who owns file exchange, share rules, applying changes, the search tools
+- [docs/architecture/plugins.md](docs/architecture/plugins.md): plugins (MCP is one): how they reach the CLI and what they may add
 - [packages/exchange-packs/docs/packs.md](packages/exchange-packs/docs/packs.md): the pack exchange: packs, reply modes, instruction sections, the pack tools
 - [packages/harness-gs/docs/](packages/harness-gs/docs/README.md): the Google Search AI mode harness, an
   experiment (module, robot checks, text and upload exchange, live checks)
@@ -67,8 +68,8 @@ packages/
                   #                          tool protocol, glob/grep, share rules, applying changes
   exchange-packs/ # @co-reiner/exchange-packs  one way to exchange files, for harnesses that take uploads:
                   #                          packs, search index, reply modes, instruction sections
-  mcp/            # @co-reiner/mcp      the MCP client: the servers a project configures, their tools
-                  #                          under Reiner's names, calling them (the host answers the calls)
+  mcp/            # @co-reiner/mcp      the MCP plugin: the servers a project configures, their tools
+                  #                          under Reiner's names, `/mcp`; the CLI knows it only as a plugin
   browser/        # @co-reiner/browser  Playwright launcher, profile management, page helpers
   harness-ms/     # @co-reiner/harness-ms  Microsoft harness: the m365-copilot module (copilot/),
                   #                             its slash commands (commands/), its pack exchange with the
@@ -91,7 +92,7 @@ Besides the code headers' own links, these docs apply to a whole package:
 | `harness-ms/` | [harness modules](docs/architecture/modules.md), [the live browser](docs/architecture/overview.md#harnesses-and-the-live-browser), [its own docs](packages/harness-ms/docs/README.md) |
 | `harness-gs/` | [harness modules](docs/architecture/modules.md), [its own docs](packages/harness-gs/docs/README.md) |
 | `exchange-packs/` | [its own doc](packages/exchange-packs/docs/packs.md), [file exchange](docs/architecture/file-exchange.md), [harness modules: file exchange](docs/architecture/modules.md#file-exchange) |
-| `mcp/` | [tool protocol: external tools](docs/architecture/tool-protocol.md#external-tools-mcp), [project config: MCP servers](docs/architecture/project-config.md#mcp-servers) |
+| `mcp/` | [plugins](docs/architecture/plugins.md), [tool protocol: external tools](docs/architecture/tool-protocol.md#external-tools-mcp), [project config: MCP servers](docs/architecture/project-config.md#mcp-servers) |
 | `reiner/`, `cli/`, `co-reiner/` | [tech stack: distribution](docs/architecture/tech-stack.md#distribution) (the bundle and the bare CLI, lockstep releases, reserving the name) |
 
 Product name in prose is **Reiner**, and the unattended runner in `../reiner-agent/` is **Reiner Agent**
@@ -134,7 +135,8 @@ organisation, and the unscoped npm proxy package `co-reiner`.
   (`hasCommand` in `packages/cli/src/tui/hints.ts`): the CLI must read well for any harness.
 - Slash commands that depend on what a harness can do live in its package (`HarnessModule.commands`,
   [harness commands](docs/architecture/modules.md#harness-commands)). The CLI keeps only global ones (`help`, `harness`,
-  `status`, `browser`, `mcp`, `clear`, `exit`), and a harness command never hides a global name.
+  `status`, `browser`, `continue`, `rounds`, `clear`, `exit`); `/mcp` is the MCP plugin's. The CLI has no
+  code for any one plugin: it knows them only through `core/src/plugin.ts`, and a harness command never hides a global name.
 - Every tool call from a model is untrusted input: validate with zod, and route side effects
   (write, delete, shell) through the permission system.
 - Never log or print cookies, tokens, or the contents of `.reiner/profiles/`.

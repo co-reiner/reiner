@@ -102,7 +102,7 @@ const TOOL_NAMES = Object.keys(TOOLS) as (keyof typeof TOOLS)[];
 
 export interface ParsedTools {
   calls: ToolCall[];
-  /** Calls to tools the host offers from outside Reiner (an MCP server's), by the names it gave. */
+  /** Calls to tools the host offers from outside Reiner (its plugins'), by the names it gave. */
   external?: ExternalToolCall[];
   /** Blocks that were tagged as tool calls but did not parse, with the reason, to report back. */
   errors: string[];
@@ -141,6 +141,10 @@ function readCall(json: unknown): RawCall | string {
   const given = args as Record<string, unknown>;
   return { tool: o.name, ...id, args: given, body: { ...given, tool: o.name } };
 }
+
+/** True when a reply holds anything to answer: Reiner's own calls, external ones, or blocks that did not parse. */
+export const hasToolCalls = (parsed: ParsedTools): boolean =>
+  parsed.calls.length + (parsed.external?.length ?? 0) + parsed.errors.length > 0;
 
 /**
  * The tool calls in a reply. `external` names the tools the host offers besides Reiner's own

@@ -5,7 +5,7 @@
  * @see {@link ../../../../docs/architecture/tool-protocol.md#project-tasks | Tool protocol: project tasks}
  */
 import { useRef } from 'react';
-import { runChat } from './chat-loop.ts';
+import { type ChatStart, runChat } from './chat-loop.ts';
 import { newChecksState } from './checks.ts';
 import { type CommandApiDeps, createCommandApi } from './command-api.ts';
 
@@ -22,15 +22,15 @@ export function useCommands(d: CommandsDeps) {
   const checks = useRef(newChecksState());
   // A chat turn can also be started by something other than the prompt (a failing check's output), so the
   // API needs to reach the chat, and the chat needs the API: the ref ties the two together.
-  const chatRef = useRef<(text: string) => Promise<void>>(async () => {});
-  const chat = (text: string) => chatRef.current(text);
+  const chatRef = useRef<(start: ChatStart) => Promise<void>>(async () => {});
+  const chat = (start: ChatStart) => chatRef.current(start);
   const { setStreaming, ...rest } = d;
   const api = createCommandApi({ ...rest, checks: checks.current, chat });
-  chatRef.current = (text) => {
+  chatRef.current = (start) => {
     const { trackChat, refreshCache, openChat } = d.harness;
     return runChat(
       { api, setBusy: d.setBusy, setStreaming, trackChat, refreshCache, openChatId: openChat?.id, cancel },
-      text,
+      start,
     );
   };
   return { api, cancel, chat };

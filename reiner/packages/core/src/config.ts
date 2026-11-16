@@ -9,7 +9,6 @@ import os from 'node:os';
 import path from 'node:path';
 import { applyEdits, modify, type ParseError, parse, printParseErrorCode } from 'jsonc-parser';
 import { z } from 'zod';
-import { McpSchema } from './mcp.ts';
 import type { TaskConfig } from './tools/tasks.ts';
 
 const BrowserSchema = z.object({
@@ -43,7 +42,11 @@ const TaskSchema = z
     };
   });
 
-export const ConfigSchema = z.object({
+/**
+ * Keys this schema does not name are kept as they are: they belong to plugins, which read and check their own
+ * block (`mcp` for the MCP plugin).
+ */
+export const ConfigSchema = z.looseObject({
   /**
    * Harnesses this project uses, keyed by harness id, in the order the user added them. Each value is
    * that harness's settings (its module reads them; search `include`/`exclude` live here too).
@@ -57,8 +60,11 @@ export const ConfigSchema = z.object({
    * change, or when the model asks for one with `run_task`. Read from the project's own config only.
    */
   tasks: z.record(z.string().regex(TASK_NAME), TaskSchema).default({}),
-  /** MCP servers whose tools the model may call, in the project's or the global config. */
-  mcp: McpSchema.default({ servers: {} }),
+  /**
+   * How many tool rounds in a row may follow one prompt before Reiner stops and hands back to the user
+   * (`/rounds`). A stop that keeps a model from looping on tool calls in a chat nobody is watching.
+   */
+  toolRounds: z.number().int().min(1).max(50).default(5),
 });
 
 export type ReinerConfig = z.infer<typeof ConfigSchema>;
@@ -138,6 +144,12 @@ export async function loadConfig(
 }
 
 const FORMAT = { formattingOptions: { insertSpaces: true, tabSize: 2 } };
+
+/** Set one value in a config file (`['mcp', 'toolDetail']`), keeping the user's comments and the rest. */
+export async function setConfigValue(file: string, at: string[], value: unknown): Promise<void> {
+  const text = existsSync(file) ? await readFile(file, 'utf8') : '{}\n';
+  await writeFile(file, applyEdits(text, modify(text, at, value, FORMAT)), 'utf8');
+}
 
 /**
  * Record that the project uses `harnessId` and make it the default. Creates the config file if needed,

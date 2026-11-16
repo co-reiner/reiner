@@ -125,7 +125,61 @@ describe('chat history', () => {
     expect((await session.lastOpenChat())?.id).toBe('c-story');
     expect(frames.join('\n').replace(/\s+/g, ' ')).toContain("Reiner keeps the chat's model");
   });
+});
 
+describe('/continue and /rounds', () => {
+  it('/continue answers the tool call in the last reply, and sends the result on', async () => {
+    const { a, session } = await setup(1);
+    const fence = '```';
+    const call = `${fence}typescript\n{"name":"glob","arguments":{"pattern":"*.md"}}\n${fence}`;
+    if (session.module) session.module.readHistory = async () => [{ prompt: 'look', reply: call }];
+    const { stdin, frames } = render(<App session={session} autoStart={false} />);
+    await tick();
+    await typeAndEnter(stdin, '/continue');
+    await until(() => a.calls.some((c) => c.startsWith('send:') && c.includes('function_call_output')));
+    expect(frames.join('\n')).toContain("Continuing from Alpha Harness's last reply.");
+    expect(a.calls.filter((c) => c.startsWith('send:'))).toHaveLength(1);
+  });
+
+  it('/continue sends nothing when the last reply has no tool calls', async () => {
+    const { a, session } = await setup(1);
+    const { stdin, frames } = render(<App session={session} autoStart={false} />);
+    await tick();
+    await typeAndEnter(stdin, '/continue');
+    await until(() => frames.join('\n').includes('Continuing from'));
+    await tick(200);
+    expect(a.calls.some((c) => c.startsWith('readHistory:'))).toBe(true);
+    expect(a.calls.some((c) => c.startsWith('send:'))).toBe(false);
+  });
+
+  it('/rounds saves the limit, and a model that keeps calling tools is stopped there', async () => {
+    const { session } = await setup(1);
+    const fence = '```';
+    const sent: string[] = [];
+    if (session.module) {
+      session.module.send = async (prompt) => {
+        sent.push(prompt);
+        return {
+          markdown: `${fence}reiner-tool\n{"name":"glob","arguments":{"pattern":"*.md"}}\n${fence}`,
+          stopped: false,
+          elapsedMs: 1,
+        };
+      };
+    }
+    const { stdin, frames } = render(<App session={session} autoStart={false} />);
+    await tick();
+    expect(session.config.toolRounds).toBe(5);
+    await typeAndEnter(stdin, '/rounds 2');
+    await until(() => frames.join('\n').includes('Saved: up to 2 tool rounds'));
+    expect(await readFile(session.paths.configFile, 'utf8')).toContain('"toolRounds": 2');
+    await typeAndEnter(stdin, 'list the docs');
+    await until(() => frames.join('\n').includes('Stopped after 2 tool rounds in a row.'));
+    // The prompt, then one answer per allowed round.
+    expect(sent).toHaveLength(3);
+  });
+});
+
+describe('/history', () => {
   it('/history shows the requested number of turns', async () => {
     const { session } = await setup(1);
     const { stdin, frames } = render(<App session={session} autoStart={false} />);
