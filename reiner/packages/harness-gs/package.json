@@ -1,6 +1,6 @@
 {
   "name": "@co-reiner/harness-gs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Reiner harness for the AI mode of Google Search (experimental). Not affiliated with or endorsed by Google.",
   "keywords": [
     "reiner",

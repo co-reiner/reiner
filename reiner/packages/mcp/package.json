@@ -1,6 +1,6 @@
 {
   "name": "@co-reiner/mcp",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Reiner MCP client: connects the MCP servers a project configures and answers the model's calls to their tools.",
   "keywords": [
     "reiner",

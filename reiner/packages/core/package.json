@@ -1,6 +1,6 @@
 {
   "name": "@co-reiner/core",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Reiner core: harness contracts, the tool protocol, config and project state.",
   "keywords": [
     "reiner",
