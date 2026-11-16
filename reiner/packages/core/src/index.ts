@@ -22,4 +22,4 @@ export * from './transfer/apply.ts';
 export * from './transfer/share.ts';
 export * from './transfer/trash.ts';
 
-export const REINER_VERSION = '0.0.1';
+export const REINER_VERSION = '0.0.2';

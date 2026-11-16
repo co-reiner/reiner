@@ -1,6 +1,6 @@
 {
   "name": "@co-reiner/browser",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Reiner browser layer: Playwright launcher with per-project persistent profiles",
   "keywords": [
     "reiner",

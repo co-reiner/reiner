@@ -1,6 +1,6 @@
 {
   "name": "co-reiner",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Alias for @co-reiner/reiner: the same reiner command, so npx co-reiner works.",
   "keywords": [
     "reiner",

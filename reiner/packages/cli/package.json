@@ -1,6 +1,6 @@
 {
   "name": "@co-reiner/cli",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Reiner CLI without harnesses: the terminal interface, its commands and tool execution. Install @co-reiner/reiner for the CLI with its harnesses.",
   "keywords": [
     "reiner",

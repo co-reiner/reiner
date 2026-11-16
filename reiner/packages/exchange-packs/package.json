@@ -1,6 +1,6 @@
 {
   "name": "@co-reiner/exchange-packs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Reiner file exchange by packs, for harnesses that take uploads: packs, the search index, reply modes and instruction sections",
   "keywords": [
     "reiner",

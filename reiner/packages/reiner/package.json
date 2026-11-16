@@ -1,6 +1,6 @@
 {
   "name": "@co-reiner/reiner",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Reiner: take the reins of your AI harness. The reiner command with its harnesses: Microsoft 365 Copilot, and Google Search AI mode (experimental).",
   "keywords": [
     "reiner",
