@@ -18,14 +18,16 @@ import {
   type ModelInfo,
   type ModelPreference,
   type ProjectPaths,
+  REINER_VERSION,
   type ReinerConfig,
+  type ReinerPlugin,
   readState,
   type SignInState,
   type TaskConfig,
   writeState,
 } from '@co-reiner/core';
 import { installedHarnesses } from './harnesses.ts';
-import { createMcpSession, type McpSession, type McpSessionOptions } from './mcp.ts';
+import { type ActivePlugin, installedPlugins, startPlugins } from './plugins.ts';
 import { createTranscript, type Transcript } from './transcript.ts';
 
 export type { Transcript, TranscriptEntry } from './transcript.ts';
@@ -69,8 +71,8 @@ export interface Session {
   tasks(): Promise<Record<string, TaskConfig>>;
   /** This run's transcript, `.reiner/sessions/<started>/transcript.jsonl`. Local only. */
   transcript: Transcript;
-  /** The MCP servers in the config, started when first needed. */
-  mcp: McpSession;
+  /** The plugins this run has, each with its session for this project (none for the bare CLI). */
+  plugins: ActivePlugin[];
 }
 
 export interface OpenSessionOptions {
@@ -79,8 +81,8 @@ export interface OpenSessionOptions {
   /** Installed harnesses. Tests pass fakes. */
   registry?: HarnessEntry[];
   globalConfigFile?: string;
-  /** How MCP servers are reached. Tests pass servers in memory. */
-  mcpConnect?: McpSessionOptions['connect'];
+  /** Plugins for this session. Default: what this run was handed. Tests pass fakes. */
+  plugins?: ReinerPlugin[];
 }
 
 /** The project folder, its `.reiner/` paths, a config loader, and what to tell the user about setting up. */
@@ -220,10 +222,13 @@ export async function openSession(start: string, opts: OpenSessionOptions = {}):
     },
     tasks: async () => (await load()).tasks,
     transcript: createTranscript(paths.sessionsDir),
-    mcp: createMcpSession(load, {
-      root,
-      imageDir: path.join(paths.reinerDir, 'mcp', 'images'),
-      ...(opts.mcpConnect ? { connect: opts.mcpConnect } : {}),
+    plugins: startPlugins(opts.plugins ?? installedPlugins(), {
+      projectRoot: root,
+      reinerDir: paths.reinerDir,
+      configFile: paths.configFile,
+      version: REINER_VERSION,
+      // Every key, so each plugin reads its own block.
+      readConfig: async () => (await load()) as Record<string, unknown>,
     }),
   };
   return session;

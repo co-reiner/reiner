@@ -57,6 +57,8 @@ home folder is still a project when Reiner is started in it.
     "test": "pnpm test",
     "lint": { "command": "pnpm lint", "afterApply": true, "timeoutSeconds": 120 }
   },
+  // tool rounds in a row after one prompt before Reiner stops (1 to 50, default 5; /rounds sets it)
+  "toolRounds": 5,
   // headless: false (default) shows the harness window; keepOpen applies to one-shot commands only;
   // keepSession: true keeps a sign-in that would end when the browser closes (see Security notes)
   "browser": { "channel": "msedge", "headless": false, "keepOpen": false, "keepSession": false },
@@ -69,6 +71,11 @@ home folder is still a project when Reiner is started in it.
 ```
 
 `permissions` is planned (M3), not read yet.
+
+`toolRounds` is how many tool rounds in a row may follow one prompt: each round answers
+the model's calls and sends the answer. At the limit Reiner stops and says so; `/continue` carries on
+from the last reply with a fresh count. It can be in the global config too, and `/rounds <n>` saves it in
+the project's ([tool-protocol.md](tool-protocol.md#result-format-built)).
 
 `harnesses` maps a harness id to that harness's settings object. The keys in it are whatever its module
 reads, documented in the harness's package (Copilot's `url`, `createdFolder` and `oneDriveUrl` are in
@@ -124,7 +131,7 @@ does when you run it yourself.
 
 ## MCP servers
 
-Built. `mcp.servers` names MCP servers whose tools the model
+Built. The MCP plugin reads this block; core keeps it as it is ([plugins.md](plugins.md)). `mcp.servers` names MCP servers whose tools the model
 may call ([tool-protocol.md](tool-protocol.md#external-tools-mcp)). It can be in the project's config or
 the global one; a project entry with the same name changes that server's keys.
 
@@ -149,10 +156,16 @@ the global one; a project entry with the same name changes that server's keys.
 | `cwd` | project root | Where a started server runs |
 | `enabled` | `true` | Off: not started, its tools not offered |
 | `allow` | `[]` | The server's own tool names that may run without a y/N |
+| `off` | `[]` | The server's own tool names not offered to the model: left out of the prompt line, the lookup and the calls. `/mcp tools` sets it (and `enabled`, for a server with nothing ticked) |
 | `timeoutSeconds` | `120` | How long connecting, and each call, may take |
 
-A server name is letters, digits and `-`, at most 24 characters. The model sees each tool as
-`<server>__<tool>` (`figma__get_metadata`), so a name has no `_`.
+A server name is letters, digits and `-`, at most 24 characters, and not `reiner`. The model sees each
+tool as `<server>__<tool>` (`figma__get_metadata`), so a name has no `_`.
+
+`mcp.toolDetail` (beside `servers`) says what the once-per-chat prompt line gives for each tool:
+`"names"` (the default; the model looks a tool up with `reiner__describe_tool` when it needs more) or
+`"arguments"` (names and argument names). `/mcp detail names|arguments` sets it in the project's config
+([tool-protocol.md](tool-protocol.md#external-tools-mcp)).
 
 What to know before adding one:
 

@@ -47,9 +47,6 @@ importers:
       '@co-reiner/core':
         specifier: workspace:^
         version: link:../core
-      '@co-reiner/mcp':
-        specifier: workspace:^
-        version: link:../mcp
       commander:
         specifier: ^15.1.0
         version: 15.1.0
@@ -147,6 +144,9 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.32.2
         version: 1.32.2(zod@4.6.7)
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
 
   packages/reiner:
     dependencies:
@@ -159,6 +159,9 @@ importers:
       '@co-reiner/harness-ms':
         specifier: workspace:^
         version: link:../harness-ms
+      '@co-reiner/mcp':
+        specifier: workspace:^
+        version: link:../mcp
 
 packages:
 

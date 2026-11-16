@@ -77,6 +77,11 @@ export interface PickOption {
   label: string;
   /** A short description shown next to it. */
   detail?: string;
+  /**
+   * 1 for a row under the nearest row above it without one (a tree: a group and its items). Ticking the
+   * group ticks all its items; the group is ticked when all of them are.
+   */
+  indent?: number;
 }
 
 /** A fixed value a command's argument can take, suggested while the user types. */

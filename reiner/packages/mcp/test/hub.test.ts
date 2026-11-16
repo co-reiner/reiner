@@ -6,12 +6,11 @@
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { McpServerSchema } from '@co-reiner/core';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { afterEach, describe, expect, it } from 'vitest';
-import { type Connector, createMcpHub, MAX_OUTPUT, type McpHub } from '../src/index.ts';
+import { type Connector, createMcpHub, MAX_OUTPUT, type McpHub, McpServerSchema } from '../src/index.ts';
 
 const PNG = Buffer.from('89504e470d0a1a0a', 'hex').toString('base64');
 

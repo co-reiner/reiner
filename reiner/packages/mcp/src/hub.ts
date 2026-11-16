@@ -4,8 +4,9 @@
  * @see {@link ../../../docs/architecture/tool-protocol.md#external-tools-mcp | Tool protocol: external tools (MCP)}
  * @see {@link ../../../docs/architecture/project-config.md#mcp-servers | Project configuration: MCP servers}
  */
-import type { McpServerConfig, ToolAnswer } from '@co-reiner/core';
+import type { ToolAnswer } from '@co-reiner/core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import type { McpServerConfig } from './config.ts';
 import { type Connector, defaultConnector, stderrTail } from './connect.ts';
 import { type RawResult, toAnswer } from './result.ts';
 
@@ -20,6 +21,8 @@ export interface McpTool {
   /** Its argument names, and which of them are required. */
   args: string[];
   required: string[];
+  /** Each argument's schema as the server gives it (type, description, allowed values), for describing. */
+  properties: Record<string, unknown>;
   /** The server marks it as only reading (`readOnlyHint`). */
   readOnly: boolean;
   /** The config's `allow` list names it: it runs without a y/N. */
@@ -76,6 +79,7 @@ function asTool(server: string, config: McpServerConfig, t: Record<string, unkno
     description: typeof t.description === 'string' ? t.description : '',
     args: Object.keys(schema.properties ?? {}),
     required: Array.isArray(schema.required) ? schema.required.map(String) : [],
+    properties: schema.properties ?? {},
     readOnly: annotations.readOnlyHint === true,
     allowed: config.allow.includes(tool),
   };

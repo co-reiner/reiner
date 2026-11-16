@@ -5,6 +5,7 @@
  */
 import type { PickOption } from '@co-reiner/core';
 import type { Session } from '../session.ts';
+import type { ChatStart } from './chat-loop.ts';
 import type { ChecksState } from './checks.ts';
 import { type CommandApi, parseCommand } from './commands.ts';
 import type { Entry } from './entries.ts';
@@ -23,13 +24,15 @@ export type Question =
       cursor: number;
       ticked: number[];
       answer(chosen: number[]): void;
+      /** Esc: leave without an answer. Absent: Esc answers with no rows ticked. */
+      cancel?(): void;
     };
 
 export interface CommandApiDeps {
   session: Session;
   checks: ChecksState;
-  /** Starts a chat turn; the app fills it in once the API exists. */
-  chat(text: string): Promise<void>;
+  /** Starts a chat turn (text to send, or the last reply again); the app fills it in once the API exists. */
+  chat(start: ChatStart): Promise<void>;
   harness: HarnessState;
   print(entry: Entry): void;
   setBusy(label: string | null): void;
@@ -71,6 +74,24 @@ export function createCommandApi(d: CommandApiDeps): CommandApi {
           answer: (chosen) => {
             d.setQuestion(null);
             resolve(chosen);
+          },
+        }),
+      ),
+    choose: (text, options, ticked) =>
+      new Promise<number[] | undefined>((resolve) =>
+        d.setQuestion({
+          kind: 'pick',
+          text,
+          options,
+          cursor: 0,
+          ticked,
+          answer: (chosen) => {
+            d.setQuestion(null);
+            resolve(chosen);
+          },
+          cancel: () => {
+            d.setQuestion(null);
+            resolve(undefined);
           },
         }),
       ),

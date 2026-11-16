@@ -35,7 +35,8 @@
   },
   "dependencies": {
     "@co-reiner/core": "workspace:^",
-    "@modelcontextprotocol/sdk": "^1.32.2"
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
   },
   "scripts": {
     "prepack": "node ../../scripts/copy-license.mjs"

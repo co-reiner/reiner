@@ -13,6 +13,9 @@ import { tab } from './browser.ts';
 import * as S from './selectors.ts';
 import type { CopilotState, Locator } from './state.ts';
 
+/** Image files, which Copilot keeps in the page instead of storing them in OneDrive. */
+export const IMAGE_FILE = /\.(png|jpe?g|gif|webp|bmp)$/i;
+
 /** Take every attachment chip out of the prompt box's draft (the uploaded files stay in the uploads). */
 export async function removeDraftAttachments(page: Page): Promise<void> {
   const chips = page.locator(S.REMOVE_ATTACHMENT);
@@ -29,12 +32,19 @@ export async function removeDraftAttachments(page: Page): Promise<void> {
  */
 export async function attach(page: Page, files: string[], onStatus?: StatusListener): Promise<void> {
   const names = files.map((f) => path.basename(f));
-  // OneDrive renames a duplicate upload ("<name>.zip.docx" becomes "<name>.zip <number>.docx"), so chips are counted, not
-  // matched by name. Callers should use unique file names to keep the names the model sees intact.
+  // An image stays in the page (an inline thumbnail, never in OneDrive): its chip, labelled with its name, is
+  // ready as soon as it shows, and never gets an `SPO_` id.
+  const images = names.filter((n) => IMAGE_FILE.test(n));
+  // OneDrive renames a duplicate upload ("<name>.zip.docx" becomes "<name>.zip <number>.docx"), so document
+  // chips are counted, not matched by name. Callers should use unique file names to keep the names the model
+  // sees intact.
   const stored = () =>
     page.evaluate(
-      (chip) => [...document.querySelectorAll(chip)].filter((c) => c.id.startsWith('SPO_')).length,
-      S.ATTACHMENT,
+      ({ chip, images }) =>
+        [...document.querySelectorAll(chip)].filter(
+          (c) => c.id.startsWith('SPO_') || images.includes(c.getAttribute('aria-label') ?? ''),
+        ).length,
+      { chip: S.ATTACHMENT, images },
     );
   // Chips left in the draft by an earlier, unsent attempt would go out with this prompt; remove them.
   await removeDraftAttachments(page);
@@ -129,7 +139,18 @@ async function startDownload(page: Page, name: string): Promise<void> {
   if (link) return link.click();
   // Copilot sometimes shows the same file twice in one reply: the last card is the one to use.
   const card = page.locator(S.fileCardNamed(name)).last();
-  await card.locator(S.FILE_CARD_MORE).click();
+  await card.scrollIntoViewIfNeeded().catch(() => {});
+  const more = card.locator(S.FILE_CARD_MORE);
+  if ((await more.count()) === 0) {
+    // The file is open in Copilot's preview panel: its card then has only "Close preview". Close it first.
+    await card
+      .locator(S.FILE_CARD_CLOSE_PREVIEW)
+      .first()
+      .click({ timeout: 5000 })
+      .catch(() => {});
+    await page.waitForTimeout(800).catch(() => {});
+  }
+  await more.first().click({ timeout: 15_000 });
   const exact = new RegExp(`^\\s*${S.FILE_CARD_DOWNLOAD}\\s*$`);
   await page.locator(S.MENU_ITEM).filter({ hasText: exact }).last().click();
 }

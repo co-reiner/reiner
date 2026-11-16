@@ -2,10 +2,11 @@
  * @file Reaching an MCP server: streamable HTTP for a `url`, a child process over stdio for a `command`.
  * @see {@link ../../../docs/architecture/project-config.md#mcp-servers | Project configuration: MCP servers}
  */
-import type { McpServerConfig } from '@co-reiner/core';
+
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import type { McpServerConfig } from './config.ts';
 
 /** A way to reach a server; tests pass one that connects to a server in memory. */
 export type Connector = (name: string, server: McpServerConfig, root: string) => Promise<Transport>;

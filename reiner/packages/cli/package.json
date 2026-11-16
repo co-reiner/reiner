@@ -43,7 +43,6 @@
   },
   "dependencies": {
     "@co-reiner/core": "workspace:^",
-    "@co-reiner/mcp": "workspace:^",
     "commander": "^15.1.0",
     "ink": "^8.0.0",
     "marked": "^18.1.3",

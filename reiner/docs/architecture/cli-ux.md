@@ -83,7 +83,9 @@ reserved: a harness command with one of these names is dropped.
 | `/harness [name]` | List harnesses, or switch: closes the current window, opens the new harness, makes it the project default (built) |
 | `/status [--check]` | Project, harness, browser and sign-in (built) |
 | `/browser show\|hide` | Show the window or run it in the background; restarts the browser (built) |
-| `/mcp [reload]` | The MCP servers, their state and tools; `reload` restarts them from the config ([tool protocol](tool-protocol.md#external-tools-mcp)) |
+| `/mcp [tools \| reload \| detail [names\|arguments]]` | The MCP plugin's command, listed only when the plugin is handed in ([plugins](plugins.md)). The MCP servers, their state and tools; `tools` ticks which servers and tools are offered to the model (a tree, saved in the project's config); `reload` restarts them from the config; `detail` shows or sets what the prompt line says about each tool ([tool protocol](tool-protocol.md#external-tools-mcp)) |
+| `/continue` | Handle the open chat's last reply again, read back from the page: answer its tool calls and carry on, or offer its changes. For a reply that was not handled (after a restart, or a turn that stopped). Needs a harness with chat history |
+| `/rounds [n]` | Show or set how many tool rounds in a row may follow one prompt (`toolRounds`, 1 to 50, default 5); saved in the project's config |
 | `/clear` | Clear the screen (built) |
 | `/exit` | Quit and close the browser (built) |
 
@@ -163,7 +165,9 @@ handed to the harness command and ignored.
   typed and `Down` past the newest entry brings it back; `Down` with no walk in progress does nothing (built)
 - In a pick list (`host.pick`, e.g. `/transfer clean`): `Up`/`Down` move (wrapping), `Space` ticks the row
   (on the first row, **(Select all)**, every row), `a` ticks or unticks all, `Enter` confirms the ticked
-  rows, `Esc` cancels with none (built)
+  rows, `Esc` cancels with none (built). A tree (`/mcp tools`) indents items under their group: `Space`
+  on a group ticks or unticks all its items, `[-]` marks a group with some ticked, and `Esc` leaves
+  everything as it was
 - Editing the prompt (our own `PromptInput`, built): `Left`/`Right`, `Ctrl+Left`/`Ctrl+Right` by word,
   `Home`/`End` (or `Ctrl+A`/`Ctrl+E`). `Shift` with any of these selects; typing replaces the selection,
   `Backspace`/`Delete` remove it. `Ctrl+W` or `Ctrl+Backspace` deletes a word, `Ctrl+U` to the start,

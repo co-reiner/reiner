@@ -70,8 +70,9 @@ What the parser allows for:
   them: `answerSearchCall` in `core/src/tools/run.ts`.
 - **`run_task` is the host's.** Whoever answers a reply's calls passes it to the host
   (`ToolRunOptions.runTask`), which owns the project's config and the y/N ([below](#project-tasks)).
-- **An MCP server's tools (`<server>__<tool>`) are the host's** too, through `ToolRunOptions.callExternal`
-  ([below](#external-tools-mcp)).
+- **A plugin's tools (an MCP server's, `<server>__<tool>`) are the host's** too, through
+  `ToolRunOptions.callExternal`: the host passes each call to the plugin that names it
+  ([plugins.md](plugins.md), [below](#external-tools-mcp)).
 - **`share_files` and `share_project` are an exchange's.** They send files, and how files are sent is the
   harness's business ([file-exchange.md](file-exchange.md)).
 - A harness with an exchange has it answer every call in a reply (`ProjectExchange.runTools`); the pack
@@ -109,18 +110,18 @@ file and one tired "y" would be enough. With names, the worst a model can do is 
 
 ## External tools (MCP)
 
-Built: the client, `@co-reiner/mcp`, and the hooks in core and both exchanges; the TUI
-starting the servers, the prompt line, the y/N, `/mcp` and the status badge. Not yet: a live
-check with Copilot, and MCP tools in `reiner -p` ([plan.md](../plan.md)).
+Built, as a plugin: `@co-reiner/mcp` ([plugins.md](plugins.md)), which the `@co-reiner/reiner` package hands
+to the CLI; the CLI itself has no MCP code. Not yet: MCP tools in `reiner -p` ([plan.md](../plan.md)).
 
 Besides its own tools, Reiner can offer the tools of MCP servers the user configures
 ([project-config.md](project-config.md#mcp-servers)), Figma's desktop server first. The model calls one
 like any other tool, in the same function-call shape, under the name `<server>__<tool>`:
 `{"name":"figma__get_metadata","arguments":{"nodeId":"1:2"}}`.
 
-- **Who answers.** The host, like `run_task`: it owns the servers, so `ToolRunOptions.callExternal` takes
-  the call, and every exchange passes such calls to it (`answerExternalCalls` in
-  `core/src/tools/external.ts`). Without the hook the model is told the tool is not available.
+- **Who answers.** The MCP plugin, through the host: every exchange passes such calls to
+  `ToolRunOptions.callExternal` (`answerExternalCalls` in `core/src/tools/external.ts`), and the host passes
+  them to the plugin that names the tool. Without the hook, or without the plugin, the model is told the tool
+  is not available.
 - **Parsing.** `extractToolCalls(markdown, names)` reads a call to one of the names the host gives as an
   external call. The `__` keeps those names apart from Reiner's own tools, which always win. The arguments
   are passed on as given (up to 20,000 characters of JSON): the server checks them against its own schema,
@@ -131,18 +132,32 @@ like any other tool, in the same function-call shape, under the name `<server>__
   upload gets a line saying it was left out. Several images can pass the harness's limit on files per
   message; the answer then goes in parts ([messages in parts](#messages-in-parts)). A tool error (`isError`) goes back as `error: …`, so the
   model can try again (Figma answers "Nothing is selected" without a `nodeId`).
-- **Servers.** The TUI starts them before the first prompt that needs them (`cli/src/mcp.ts`), and
-  closes them on quit; `/mcp` lists them with their tools, and `/mcp reload` restarts them from the
+- **Servers.** The plugin starts them before the first prompt that needs them
+  (`mcp/src/plugin/session.ts`), and closes them on quit; `/mcp` lists them with their tools, and `/mcp reload` restarts them from the
   config. Each one is connected and its tools listed. One that fails to connect is
   reported and left out; the others work. A started process's error output is kept, never printed, so it
   cannot break the TUI.
-- **Teaching the model.** As with tasks, not in the saved instructions: once per chat the prompt gets a
-  line with each tool's name and its argument names, optional ones marked `?`
-  (`figma__get_metadata(nodeId?, …)`); past 1,500 characters, the names only. The descriptions (Figma's
-  run to 1,300 characters each) stay out; they are long, and untrusted text.
+- **Teaching the model.** As with tasks, not in the saved instructions, so adding or removing a server
+  needs no `/instructions sync`: once per chat the prompt gets a line naming the tools. By default it
+  gives the names only, and the model guesses from a name or looks a tool up with
+  `reiner__describe_tool` (`{"name":"reiner__describe_tool","arguments":{"name":"figma__get_metadata"}}`),
+  which answers with the tool's description (up to 2,000 characters) and each argument's type, allowed
+  values and description. A wrong guess costs little: the server's error goes back, and the model can
+  look the tool up then. `"toolDetail": "arguments"` (or `/mcp detail arguments`) adds the argument
+  names to the line, optional ones marked `?` (`figma__get_metadata(nodeId?, …)`), names only past
+  1,500 characters. The descriptions never go in the line (Figma's run to 1,300 characters each).
+  **Why names by default:** the line goes into the chat once for every chat, and most chats
+  call few of the tools; a name like `get_screenshot` says enough to try. The lookup needs no y/N: it only
+  reads what the server listed. The server name `reiner` is reserved for it.
+- **Choosing.** `/mcp tools` shows the servers and their tools as a tree to tick. What is unticked is
+  not offered from the next prompt on: a tool goes into its server's `off` list, a server with nothing
+  ticked is turned off (`enabled: false`) and the servers restart. Each chat is told the new list on its
+  next prompt; a call to a tool turned off is answered as not available and never reaches its server.
+  **Why:** fewer tools mean a shorter line and fewer wrong calls, and a server that is not
+  needed for a while need not run.
 - **Asking.** A read-only tool (`readOnlyHint`) is asked about the first time it is used in a session,
   unless the server's `allow` names it. A tool that may change things is asked about every time, whatever
-  `allow` says. The question names the server, the tool and its arguments (`cli/src/tui/mcp-tools.ts`).
+  `allow` says. The question names the server, the tool and its arguments (`mcp/src/plugin/tools.ts`).
 
 **Why this is not reverse-engineering.** The motto is about the harness: Copilot is still
 only driven through its page. An MCP server is a tool the user chose to run, like `grep`, and MCP is the
@@ -167,7 +182,10 @@ Continue the task.
 
 A pack that answers a call goes with the message as an attachment, as with any prompt; the `output` names
 it. So does an image an MCP tool returns. A message with more files than the harness takes goes in parts
-([below](#messages-in-parts)). At most 3 tool rounds follow one prompt.
+([below](#messages-in-parts)). At most `toolRounds` tool rounds follow one prompt (5 by default, 1 to 50,
+`/rounds` sets it; [project-config.md](project-config.md#example-configjsonc)). The limit was a fixed 3
+at first; a Figma session needs more, since the model often looks a tool up before calling it. It
+stays a limit, so a model cannot loop on tool calls in a chat nobody is watching; `/continue` carries on.
 
 Known cost: because `output` is a JSON string, quotes and backslashes in `grep` lines are escaped. The
 live check (`pnpm live:tools`) has not been run since the change; if the model misreads escaped lines,

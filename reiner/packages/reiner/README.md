@@ -99,14 +99,18 @@ steps.
 **In the terminal UI:** type a prompt and press `Enter` (the prompt is a single line). `Esc` stops the turn: a reply that is still being written, or a prompt that has not been sent yet. Typing `/` lists the commands, with suggestions for
 their arguments.
 
-| Command               | Does                                                             |
-| --------------------- | ---------------------------------------------------------------- |
-| `/help`               | Lists every command.                                             |
-| `/harness [id]`       | Lists harnesses, or switches and makes it the project's default. |
-| `/status [--check]`   | Shows the project, harness, browser and sign-in.                 |
-| `/browser show\|hide` | Shows the browser window, or runs it in the background.          |
-| `/mcp [reload]`       | Lists your MCP servers and their tools; `reload` restarts them.  |
-| `/clear`, `/exit`     | Clears the screen; quits.                                        |
+| Command                        | Does                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| `/help`                        | Lists every command.                                                                 |
+| `/harness [id]`                | Lists harnesses, or switches and makes it the project's default.                     |
+| `/status [--check]`            | Shows the project, harness, browser and sign-in.                                     |
+| `/browser show\|hide`          | Shows the browser window, or runs it in the background.                              |
+| `/mcp [reload]`                | Lists your MCP servers and their tools; `reload` restarts them.                      |
+| `/mcp tools`                   | Ticks which MCP servers and tools the model is offered (a tree).                     |
+| `/mcp detail names\|arguments` | Sets whether the model is told tool names only, or arguments too.                    |
+| `/continue`                    | Picks up the chat's last reply again: answers its tool calls, or offers its changes. |
+| `/rounds [n]`                  | Shows or sets how many tool rounds may follow one prompt (default 5).                |
+| `/clear`, `/exit`              | Clears the screen; quits.                                                            |
 
 Each harness adds its own commands (sign-in, chats, models, file exchange), listed first in `/help`. For
 Microsoft 365 Copilot they are in [its README](https://www.npmjs.com/package/@co-reiner/harness-ms#commands).
@@ -227,7 +231,13 @@ The model can also call the tools of MCP servers you set up, such as Figma's des
 }
 ```
 
-- The servers start before your first prompt; `/mcp` shows them and their tools.
+- The servers start before your first prompt; `/mcp` shows them and their tools. After editing the
+  servers, run `/mcp reload`. No `/instructions sync` is needed: each chat is told about the tools in
+  its first prompt.
+- `/mcp tools` lets you tick whole servers or single tools; the rest are not offered from the next
+  prompt on, and the choice is saved in `.reiner/config.jsonc`.
+- By default the model is told the tool names only, and looks a tool up when it needs its arguments.
+  `/mcp detail arguments` tells it the argument names up front.
 - Reiner asks before the first call to each tool in a session, unless `allow` names it. A tool that may
   change things on its server is asked about every time.
 - What a tool returns goes to the harness's model, and so to its vendor. Images (a Figma screenshot) are

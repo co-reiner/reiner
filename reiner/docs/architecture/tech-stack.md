@@ -61,9 +61,11 @@ Status: **Proposed** (2026-11-07)
 
 - Primary: npm package `@co-reiner/reiner`, command `reiner`. `npm i -g @co-reiner/reiner`. It bundles
   `@co-reiner/cli` (the CLI without harnesses, command `reiner-cli`) with the harness packages it
-  lists in `packages/reiner/bin/reiner.js`, passed to the CLI's `run()` (since 2026-11-11). The CLI's
-  runtime dependencies hold only what an empty CLI needs, so it can be reused with any set of harnesses,
-  including by Reiner Agent; harness packages are only its dev dependencies, for tests and live checks.
+  lists in `packages/reiner/bin/reiner.js`, passed to the CLI's `run()` (since 2026-11-11), and with the
+  plugins it lists there (`@co-reiner/mcp`, [plugins.md](plugins.md)), passed the same way. The CLI's
+  runtime dependencies hold only what an empty CLI needs, so it can be reused with any set of harnesses and
+  plugins, including by Reiner Agent; harness packages are only its dev dependencies, for tests and live
+  checks, and it does not depend on any plugin.
   A harness brings what it needs with it: `@co-reiner/harness-ms` depends on `@co-reiner/exchange-packs`
   (file exchange by packs), which neither the CLI nor core depends on.
   Both packages can be installed together: their commands are `reiner` and `reiner-cli`.
