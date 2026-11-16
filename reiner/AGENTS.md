@@ -43,8 +43,8 @@ for what is not built yet. Docs marked **Built** describe the code; the rest is 
 
 To try it, run the CLI inside `../test-projects/test01/` (committed; its `.reiner/` is ignored): `.\reiner.cmd` (PowerShell) or `./reiner` (bash).
 That folder gets its own `.reiner/`.
-When a decision is made, write it into the architecture doc it belongs to, with its date and a short
-"why"; there are no separate decision records.
+When a decision is made, write it into the architecture doc it belongs to, with a short "why" and no date;
+there are no separate decision records.
 
 ## Stack
 
@@ -103,7 +103,8 @@ organisation, and the unscoped npm proxy package `co-reiner`.
 ## Conventions
 
 - Australian English in docs, comments and user-facing strings (behaviour, organisation, initialise).
-- Dates in docs as `YYYY-MM-DD`.
+- No dates in docs or code comments (no "built 2026-…", "seen 2026-…", "Why (2026-…)"): write the status and
+  the reason only. When something happened is in the commit history.
 - Cross-platform always: use `node:path`, never hard-code `/` or `\`; test path handling on Windows.
 - **Puppet, never reverse-engineer** (the motto in [`../AGENTS.md`](../AGENTS.md#motto-we-puppet-harnesses)):
   modules only use the harness's own page. No vendor APIs, no network interception, no token reuse, no

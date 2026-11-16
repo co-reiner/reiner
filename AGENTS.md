@@ -31,7 +31,8 @@ precedence over this one for anything inside that folder.
 ## Repository-wide conventions
 
 - Australian English in docs, comments and user-facing strings (behaviour, organisation, initialise).
-- Dates in docs as `YYYY-MM-DD`.
+- No dates in docs or code comments (no "built 2026-…", "seen 2026-…", "Why (2026-…)"): write the status and
+  the reason only. When something happened is in the commit history.
 - Cross-platform always: Windows, macOS and Linux.
 - Never commit `.reiner/` folders. They hold browser profiles with live session cookies.
 - Code that both projects need (harness modules, tool protocol) belongs in `reiner` packages and is
