@@ -5,6 +5,7 @@
  */
 import type { ChatInfo, ModelPreference, SignInState } from '@co-reiner/core';
 import { Box, Text, useAnimation } from 'ink';
+import { useState } from 'react';
 import type { Session } from '../session.ts';
 import type { Question } from './command-api.ts';
 import { SignInBadge } from './EntryView.tsx';
@@ -74,7 +75,10 @@ export function QuestionBox({ question }: { question: Question }) {
     <Box marginTop={1} borderStyle="round" borderColor="yellow" paddingX={1}>
       <Text>
         <Text color="yellow">? </Text>
-        {question.text} <Text color="gray">(y/N)</Text>
+        {question.text}{' '}
+        <Text color="gray">
+          {question.kind === 'text' ? '(type below · Enter sends · Esc for none)' : '(y/N)'}
+        </Text>
       </Text>
     </Box>
   );
@@ -147,6 +151,25 @@ export interface PromptAreaProps {
   menu: Suggestion[];
   highlighted: number;
   status: StatusInfo;
+}
+
+/** The prompt box for a text question: what is typed here is the answer, apart from the prompt's own text. */
+export function AnswerArea({ onAnswer, status }: { onAnswer(value: string): void; status: StatusInfo }) {
+  const [value, setValue] = useState('');
+  return (
+    <PromptArea
+      busy={null}
+      input={value}
+      onChange={setValue}
+      onSubmit={(text) => {
+        setValue('');
+        onAnswer(text);
+      }}
+      menu={[]}
+      highlighted={0}
+      status={status}
+    />
+  );
 }
 
 /** The prompt box (or the spinner while busy), with the suggestion list or the status line under it. */

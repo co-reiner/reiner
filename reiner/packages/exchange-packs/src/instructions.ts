@@ -26,101 +26,11 @@
  * @see {@link ../../../docs/architecture/overview.md#instruction-injection | Architecture overview: instruction injection}
  * @see {@link ../docs/packs.md#why-it-works-this-way | File exchange: why it works this way}
  */
-import {
-  type ChatReply,
-  DELETE_HEADER,
-  SEARCH_TOOLS_TEXT,
-  type StatusListener,
-  TOOL_FORMAT_TEXT,
-} from '@co-reiner/core';
+import { DELETE_HEADER, SEARCH_TOOLS_TEXT, TOOL_FORMAT_TEXT } from '@co-reiner/core';
+import type { TransferMode } from './modes.ts';
+import { TEXT_FILES_HEADING, textFilesSection, textToolsSection } from './text-sections.ts';
 
-/** What a reply mode is given to collect its changes from a reply. */
-export interface CollectContext {
-  /** The project's name, as in pack and patch file names. */
-  project: string;
-  /** Where received files are saved (`.reiner/incoming/`). */
-  incomingDir: string;
-  onStatus?: StatusListener;
-}
-
-/**
- * How the model sends file changes back. A harness lists the modes it offers; `/transfer` switches. A mode
- * owns everything that is particular to it: the text that tells the model what to do, and how its files
- * are fetched. So a harness adds a mode of its own without touching this package (Copilot's `onedrive`).
- */
-export interface TransferMode {
-  id: string;
-  label: string;
-  description: string;
-  /**
-   * The lines of the "Reiner reply format" section for this mode: plain text, generic (NAME for the
-   * project, NUMBER for the patch number), and never a line of three dashes.
-   */
-  instructions: string[];
-  /**
-   * Fetch this mode's files for a reply: the saved local paths, read afterwards as change sets, and notes
-   * for the user. Absent when the changes are in the reply text itself.
-   */
-  collect?(reply: ChatReply, ctx: CollectContext): Promise<{ files: string[]; notes: string[] }>;
-}
-
-/** The reply modes a harness offers, and whether its packs may carry the search index. */
-export interface TransferSupport {
-  modes: TransferMode[];
-  /** The id of the mode a new project starts with. */
-  defaultMode: string;
-  /** Packs may include the SQLite search index (the harness's model can run code on uploads). */
-  index: boolean;
-}
-
-export const DIFF_MODE: TransferMode = {
-  id: 'diff',
-  label: 'git diff in the reply',
-  description: 'The model replies with a unified git diff in a code block; Reiner applies it with git apply.',
-  instructions: [
-    'When I ask for changes to project files, provide them as one code block labelled `diff`, in `git diff` format.',
-    '',
-    '- Start each file with a `diff --git` header naming `a/PATH` and `b/PATH`, with paths relative to the project root, 3 context lines and correct `@@` hunk headers.',
-    '- For a new file, use `new file mode 100644` with `/dev/null` as the old side.',
-    '- Files to remove go in the `#To delete (only to a bin):` block, not in the diff.',
-  ],
-};
-
-/** Saves the named download links of the newest reply into a folder; a harness's own page work. */
-export type DownloadLinks = (
-  dir: string,
-  /** Without `names`: every file the newest reply offers. */
-  opts: { names?: string[]; onStatus?: StatusListener },
-) => Promise<string[]>;
-
-/**
- * The `download` mode: the model links a patch file in its reply (`ChatReply.downloads`) and the harness
- * clicks the link. A harness that can do that offers the mode with its own `download`.
- */
-export function downloadMode(download: DownloadLinks): TransferMode {
-  return {
-    id: 'download',
-    label: 'patch file as a download link',
-    description:
-      'The model creates a .patch file (git diff --binary) or a ZIP of changed files and links it; Reiner clicks the link and applies the file.',
-    instructions: [
-      'When I ask for changes to project files, provide them as a patch file with a download link.',
-      '',
-      '- Preferred: `NAME.patch.NUMBER.patch`, made with `git diff --cached --binary HEAD` after committing the unpacked project and staging the changes.',
-      '- Without git: a ZIP named `NAME.patch.NUMBER.zip` containing only changed and newly added files, with paths relative to the project root.',
-      '- Files to remove go in the `#To delete (only to a bin):` block, not in the ZIP.',
-    ],
-    async collect(reply, ctx) {
-      // No list (a reply read back from the history): take what the newest reply in the page offers.
-      if (reply.downloads?.length === 0) return { files: [], notes: [] };
-      const files = await download(ctx.incomingDir, {
-        ...(reply.downloads ? { names: reply.downloads } : {}),
-        ...(ctx.onStatus ? { onStatus: ctx.onStatus } : {}),
-      });
-      return { files, notes: [] };
-    },
-  };
-}
+export * from './modes.ts';
 
 export interface InstructionSection {
   id: string;
@@ -152,12 +62,13 @@ const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&
 /** The section id a heading line belongs to, in its current or an earlier wording. */
 function idOfHeading(heading: string): string | undefined {
   const line = heading.trim();
+  if (line === TEXT_FILES_HEADING) return 'files';
   return Object.keys(HEADINGS).find((id) => HEADINGS[id] === line || EARLIER_HEADINGS[id] === line);
 }
 
 /** A section in a text: one of Reiner's headings up to the first line that is only three dashes. */
 const SECTION = new RegExp(
-  `^(?:${[...Object.values(HEADINGS), ...Object.values(EARLIER_HEADINGS)].map(escapeRegExp).join('|')})[ \\t]*\\r?\\n[\\s\\S]*?^---[ \\t]*(?:\\r?\\n|$)`,
+  `^(?:${[...Object.values(HEADINGS), ...Object.values(EARLIER_HEADINGS), TEXT_FILES_HEADING].map(escapeRegExp).join('|')})[ \\t]*\\r?\\n[\\s\\S]*?^---[ \\t]*(?:\\r?\\n|$)`,
 );
 /** Sections saved before 2026-11-11 were wrapped in HTML comments. They are still found, so a sync replaces them. */
 const OLD_SECTION = /<!-- reiner:begin ([\w-]+) -->[\s\S]*?<!-- reiner:end \1 -->\n?/;
@@ -214,6 +125,14 @@ export interface SectionOptions {
  * share the same field, and every prompt that carries the sections pays for them.
  */
 export function buildSections(opts: SectionOptions): InstructionSection[] {
+  // Files quoted in messages: no archives to explain, no index to search.
+  if (opts.mode.outbound === 'text') {
+    return [
+      { id: 'files', text: textFilesSection(TEXT_FILES_HEADING, DELETE_HEADER) },
+      { id: 'tools', text: textToolsSection(HEADINGS.tools ?? '') },
+      { id: 'transfer', text: [HEADINGS.transfer, '', ...opts.mode.instructions].join('\n') },
+    ];
+  }
   const sections: InstructionSection[] = [
     {
       id: 'files',

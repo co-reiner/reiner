@@ -12,11 +12,12 @@ import type { Entry } from './entries.ts';
 import type { HarnessState } from './useHarness.ts';
 
 /**
- * What waits for the user under the transcript: a y/N question, or a list to tick (row 0 of a pick list is
- * "(Select all)", so `cursor` counts it).
+ * What waits for the user under the transcript: a y/N question, a line of text, or a list to tick (row 0 of
+ * a pick list is "(Select all)", so `cursor` counts it).
  */
 export type Question =
   | { kind: 'confirm'; text: string; answer(yes: boolean): void }
+  | { kind: 'text'; text: string; answer(value: string): void }
   | {
       kind: 'pick';
       text: string;
@@ -60,6 +61,17 @@ export function createCommandApi(d: CommandApiDeps): CommandApi {
           answer: (yes) => {
             d.setQuestion(null);
             resolve(yes);
+          },
+        }),
+      ),
+    ask: (text) =>
+      new Promise<string>((resolve) =>
+        d.setQuestion({
+          kind: 'text',
+          text,
+          answer: (value) => {
+            d.setQuestion(null);
+            resolve(value.trim());
           },
         }),
       ),

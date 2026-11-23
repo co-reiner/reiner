@@ -109,6 +109,7 @@ fetches its files for a reply. So a harness adds a mode of its own without chang
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `diff`     | Replies with one fenced `diff` block in `git diff` format                                                                                                     | Runs `git apply --recount` (checks first)                                                                                                                             |
 | `download` | Creates `<project>.patch.<NNN>.patch` (`git diff --binary`), or a plain ZIP of changed and new files, and links it; files to delete go in the To delete block | Has the harness save the reply's download links and applies the file. The harness makes the mode with `downloadMode(save)`, passing its own way of clicking the links |
+| `messages` | Replies with one fenced `diff` block, as in `diff`; it gets project files quoted in messages, never uploaded                                                  | Applies the diff as in `diff`, and sends files as text ([below](#the-messages-mode))                                                                                  |
 
 Example of a harness's own mode: Copilot's `onedrive`, which reads the patch from OneDrive's page
 ([packages/harness-ms/docs/file-exchange.md](../../harness-ms/docs/file-exchange.md#reply-modes)).
@@ -116,6 +117,37 @@ Example of a harness's own mode: Copilot's `onedrive`, which reads the patch fro
 A diff found in a reply is offered in every mode, because models sometimes answer that way anyway. For
 the same reason, files a reply offers are taken in every mode: a mode that fetches nothing itself
 (`diff`) uses the `download` mode's way, when the harness offers that mode (since 2026-11-12).
+
+## The messages mode
+
+Built. `messages` (`MESSAGES_MODE`) uploads nothing at all, for accounts where uploads do not work (no
+OneDrive, or an organisation that blocks them). It is the one mode that also changes the way out
+(`TransferMode.outbound: 'text'`):
+
+- **Up, quoted in the message.** `/pack` sends the project's file list, names only (at most 400; the
+  model finds the rest with `glob`), never the content, however small the project. The list follows the
+  share rules alone, not the search settings (`include`, `exclude` are for `glob` and `grep`), so it never
+  hides a shareable file nor names one `share_files` would refuse. `share_files` quotes
+  the files asked for, each under its path (`File PATH:` and a fence longer than any run of backticks in
+  the file), and in this mode the model may ask for any file the share rules allow, since it may only have
+  seen the list. `share_project` sends the same list as `/pack`, after a y/N. Files that do not fit the
+  message are named, for a later call; binary and very large files are refused.
+- **The limit** is `TransferSupport.textLimit` characters of quoted files per message (Copilot: 100,000;
+  24,000 when a harness sets none). Copilot's prompt box keeps a longer paste but disables Send above about
+  128,000 characters, with no message; the margin leaves room for the sections and the request.
+- **No refresh.** Nothing is sent before each prompt for files changed since: the model asks for current
+  files with `share_files`. The files a message quoted count as seen by the chat.
+- **Down, as in `diff`:** the model replies with a `git diff` in the message, and Reiner tells it what was
+  applied ([telling the model](../../../docs/architecture/file-exchange.md#telling-the-model-what-was-applied)),
+  so a model that sends one file at a time goes on. A file the reply offers anyway
+  is still downloaded, as in every mode.
+- **The sections** describe quoted files (`## Project files`), not archives, and have no index section. A
+  sync finds that heading as the files section too, so switching modes replaces it.
+
+**Why the list and never the content.** A message holds only so much; the file list costs little, and with
+it the model asks for exactly what the task needs over the next turns, as the Google Search harness does.
+Quoting the whole project when it fits was tried first: it filled the message with files the task did not
+need, and how a project was sent then depended on its size.
 
 ## Instructions and sections
 

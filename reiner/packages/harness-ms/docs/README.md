@@ -15,7 +15,7 @@ The package provides:
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
 | [module.md](module.md)               | Code layout, sign-in, models, sending and reading, chat history, settings keys, page lessons, live checks |
 | [commands.md](commands.md)           | Copilot's slash commands, their arguments, y/N questions and one-shot use                                 |
-| [file-exchange.md](file-exchange.md) | `.zip.docx` packs, the three reply modes, OneDrive, custom instructions, co-editing                       |
+| [file-exchange.md](file-exchange.md) | `.zip.docx` packs, the four reply modes (one uploads nothing), OneDrive, custom instructions, co-editing  |
 
 ## When a model is missing
 
