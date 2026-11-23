@@ -163,6 +163,9 @@ handed to the harness command and ignored.
   prompt to edit, `Esc` hides the list (built)
 - Otherwise `Up` / `Down` browse history; a recalled command keeps the list hidden. `Up` keeps what was
   typed and `Down` past the newest entry brings it back; `Down` with no walk in progress does nothing (built)
+- A text question (`api.ask`, e.g. why a change was not applied) shows its question above the prompt
+  box; what is typed is the answer, `Enter` sends it, and `Esc` (or `Enter` on an empty line) answers
+  with nothing (built)
 - In a pick list (`host.pick`, e.g. `/transfer clean`): `Up`/`Down` move (wrapping), `Space` ticks the row
   (on the first row, **(Select all)**, every row), `a` ticks or unticks all, `Enter` confirms the ticked
   rows, `Esc` cancels with none (built). A tree (`/mcp tools`) indents items under their group: `Space`

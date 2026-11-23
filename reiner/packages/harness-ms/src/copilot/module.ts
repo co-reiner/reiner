@@ -15,7 +15,13 @@ import {
   readState,
   type SignInState,
 } from '@co-reiner/core';
-import { createPackExchange, DIFF_MODE, downloadMode, type TransferSupport } from '@co-reiner/exchange-packs';
+import {
+  createPackExchange,
+  DIFF_MODE,
+  downloadMode,
+  MESSAGES_MODE,
+  type TransferSupport,
+} from '@co-reiner/exchange-packs';
 import { type ChatHarness, chatHarnessCommands } from '../commands/index.ts';
 import { check, login, startResult, stop, tab, waitUntilClosed } from './browser.ts';
 import { currentChat, deleteChat, listChats, newChat, openChat, readHistory, renameChat } from './chats.ts';
@@ -28,15 +34,30 @@ import { createState } from './state.ts';
 import { onedriveMode } from './transfer.ts';
 import { listUploads, removeUploads } from './uploads.ts';
 
+/**
+ * How files go to Copilot and come back, this harness's own business: packs with three ways back, or
+ * `messages`, which uploads nothing, for accounts where uploads do not work.
+ */
+function copilotTransfer(st: ReturnType<typeof createState>): TransferSupport {
+  return {
+    modes: [
+      DIFF_MODE,
+      MESSAGES_MODE,
+      downloadMode((dir, opts) => downloadReplyFiles(st, dir, opts)),
+      onedriveMode(st),
+    ],
+    defaultMode: 'download',
+    index: true,
+    // Quoted files in one message. Copilot disables Send above about 128,000 characters, without a
+    // message; this leaves room for the sections and the request.
+    textLimit: 100_000,
+  };
+}
+
 export function createCopilotModule(ctx: HarnessContext): ChatHarness {
   const st = createState(ctx);
   const displayName = 'Microsoft 365 Copilot';
-  // How files go to Copilot and come back is this harness's own business: packs, with three ways back.
-  const transfer: TransferSupport = {
-    modes: [DIFF_MODE, downloadMode((dir, opts) => downloadReplyFiles(st, dir, opts)), onedriveMode(st)],
-    defaultMode: 'diff',
-    index: true,
-  };
+  const transfer = copilotTransfer(st);
   const exchange = createPackExchange({
     root: ctx.projectRoot,
     reinerDir: path.join(ctx.projectRoot, REINER_DIR),

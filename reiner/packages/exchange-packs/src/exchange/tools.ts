@@ -25,8 +25,10 @@ import {
   pad3,
   projectName,
   readTransferState,
+  sendsText,
   type TransferContext,
 } from './store.ts';
+import { shareFilesText, shareProjectText } from './text-tools.ts';
 import { answer, type Call, plural, refusedLine, type ToolRun, type ToolRunOptions } from './tool-run.ts';
 
 export type { ToolRunOptions } from './tool-run.ts';
@@ -81,20 +83,26 @@ export async function runTools(
   });
   return {
     prepared: {
-      prompt: [facts, ...run.lines, 'Continue the task.'].join('\n'),
+      prompt: [facts, ...run.lines, ...quotedBlock(run), 'Continue the task.'].join('\n'),
       attachments: [...(run.pack ? [run.pack.file] : []), ...external.attachments],
       notes: run.pack ? packNotes(run.pack) : [],
       ...(run.pack ? { pack: run.pack } : {}),
       ...(run.view ? { view: run.view } : {}),
+      ...(run.quoted?.length ? { quoted: run.quoted } : {}),
     },
     summary: run.summary,
   };
 }
 
+/** The files the `messages` mode quotes with the answer, between the answers and "Continue the task.". */
+const quotedBlock = (run: ToolRun): string[] => (run.text?.length ? ['', ...run.text, ''] : []);
+
 async function runOne(run: ToolRun, call: ToolCall): Promise<void> {
   run.callId = call.callId;
-  if (call.tool === 'share_project') return shareProject(run, call);
-  if (call.tool === 'share_files') return shareFiles(run, call);
+  // The `messages` mode quotes files with the answer; the others send packs.
+  const text = sendsText(run.ctx, run.s);
+  if (call.tool === 'share_project') return text ? shareProjectText(run, call) : shareProject(run, call);
+  if (call.tool === 'share_files') return text ? shareFilesText(run, call) : shareFiles(run, call);
   if (call.tool === 'run_task') {
     // Not a pack tool: the host runs the project's tasks, and its answer goes back with the others.
     const done = await answerTaskCall(call, run.opts, run.who);

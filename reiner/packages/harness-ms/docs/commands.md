@@ -21,9 +21,9 @@ instructions and file transfer all present. A harness that lacks some of these b
 | `/history [turns]`                           | Show the open chat's latest turns, read back from the page (default 5).                                                                                                                                                                                                    |
 | `/rename <new title>`                        | Rename the open chat with Copilot's own Rename control.                                                                                                                                                                                                                    |
 | `/delete [name or number]`                   | Delete a chat (the open one by default) after a y/N question. Deleting the open chat starts a new one, so the next prompt does not go into the deleted conversation.                                                                                                       |
-| `/transfer [mode] \| index on\|off \| clean` | Show the file-exchange settings, switch the reply mode (`diff`, `download`, `onedrive`), turn the search index in packs on or off, or clean old packs out of the uploads ([below](#transfer-clean)).                                                                       |
+| `/transfer [mode] \| index on\|off \| clean` | Show the file-exchange settings, switch the reply mode (`diff`, `messages`, `download`, `onedrive`; a new project starts in `download`), turn the search index in packs on or off, or clean old packs out of the uploads ([below](#transfer-clean)).                       |
 | `/instructions [sync \| remove]`             | Show, save or remove Reiner's sections in Copilot's custom instructions.                                                                                                                                                                                                   |
-| `/pack`                                      | Pack the whole project and attach it to the next prompt. After that, changes go automatically as part packs.                                                                                                                                                               |
+| `/pack`                                      | Pack the whole project and attach it to the next prompt. After that, changes go automatically as part packs. In the `messages` mode: list the project's files in the next prompt instead (names only).                                                                     |
 | `/apply`                                     | Offer the last reply's file changes again (after a restart: the open chat's newest reply).                                                                                                                                                                                 |
 | `/models [--debug]`                          | List the models Copilot offers to the account, grouped by submenu. `--debug` writes a dump to `.reiner/logs/`.                                                                                                                                                             |
 | `/model <name>`                              | Pick a model by part of its name, e.g. `/model sol quick`: it switches the open chat at once and becomes the project's model for new chats. No name shows the project's choice.                                                                                            |
@@ -44,7 +44,7 @@ The TUI suggests argument values while the user types (see
 - `complete: 'model'`: `/model`. Names come from the last `/models`.
 - `complete: 'chat'`: `/chat` and `/delete`. Names come from the last `/chats`.
 - `choices()`, fixed values:
-  - `/transfer`: the modes Copilot declares (`diff`, `download`, `onedrive`), then `index on`,
+  - `/transfer`: the modes Copilot declares (`diff`, `messages`, `download`, `onedrive`), then `index on`,
     `index off` and `clean`.
   - `/instructions`: `sync`, `remove`.
   - `/models`: `--debug`.

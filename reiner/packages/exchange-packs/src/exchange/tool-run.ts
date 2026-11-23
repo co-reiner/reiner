@@ -28,6 +28,9 @@ export interface ToolRun {
   view?: string;
   filter: FileFilter;
   filterError?: string;
+  /** The `messages` mode: files quoted with the answer, and their paths. */
+  text?: string[];
+  quoted?: string[];
 }
 
 export type Call<T extends ToolCall['tool']> = Extract<ToolCall, { tool: T }>;

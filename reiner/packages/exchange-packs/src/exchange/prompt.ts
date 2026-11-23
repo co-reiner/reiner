@@ -7,6 +7,7 @@
 import path from 'node:path';
 import { promptFacts, renderSections } from '../instructions.ts';
 import { type PackResult, packProject } from '../pack.ts';
+import { type ProjectList, projectList } from '../text.ts';
 import { partLine, refreshPrimary, withPack } from './primary.ts';
 import {
   BRIEFED_BY_SYNC,
@@ -18,8 +19,10 @@ import {
   readTransferState,
   saveTransferState,
   sectionsFor,
+  sendsText,
   signature,
   type TransferContext,
+  type TransferState,
 } from './store.ts';
 
 /** Packing for the next prompt, building the prompt as sent, and recording what each chat has had. */
@@ -34,6 +37,19 @@ export function promptMethods(ctx: TransferContext) {
       ctx.pending = pack;
       return pack;
     },
+
+    /**
+     * The `messages` mode's /pack: the project's file list for the next prompt, never its content. Nothing is
+     * uploaded; the model asks for the files it needs.
+     */
+    async listProject(): Promise<ProjectList> {
+      const project = await projectList(ctx.host.root);
+      ctx.pendingText = project;
+      return project;
+    },
+
+    /** True in the `messages` mode: files go quoted in messages, never in uploaded packs. */
+    sendsText: async (): Promise<boolean> => sendsText(ctx, await readTransferState(ctx)),
 
     prepare: (text: string, chatId: string | undefined) => prepare(ctx, text, chatId),
 
@@ -52,6 +68,7 @@ export function promptMethods(ctx: TransferContext) {
     async afterSend(chatId: string | undefined, sent: PackPrepared, _userText: string): Promise<void> {
       // The /pack pack has gone out. `prepare` leaves it waiting, so a send that fails can be retried with it.
       if (sent.pack && sent.pack === ctx.pending) ctx.pending = undefined;
+      if (ctx.pendingText && sent.projectList === ctx.pendingText) ctx.pendingText = undefined;
       if (!chatId) return;
       const s = await readTransferState(ctx);
       const next = { ...s, lastSent: { ...s.lastSent, [chatId]: new Date().toISOString() } };
@@ -59,9 +76,10 @@ export function promptMethods(ctx: TransferContext) {
         const how = sent.briefs === 'sections' ? signature(ctx, s) : BRIEFED_BY_SYNC;
         next.briefed = { ...s.briefed, [chatId]: how };
       }
-      if (sent.pack) {
+      const files = [...(sent.pack?.files ?? []), ...(sent.quoted ?? [])];
+      if (files.length) {
         const before = s.shared[chatId] ?? [];
-        next.shared = { ...s.shared, [chatId]: [...new Set([...before, ...sent.pack.files])].sort() };
+        next.shared = { ...s.shared, [chatId]: [...new Set([...before, ...files])].sort() };
       }
       await saveTransferState(ctx, sent.pack ? withPack(next, chatId, sent.pack, sent.view) : next);
     },
@@ -77,6 +95,8 @@ async function prepare(
   text: string,
   chatId: string | undefined,
 ): Promise<PackPrepared> {
+  const before = await readTransferState(ctx);
+  if (sendsText(ctx, before)) return prepareText(ctx, text, chatId, before);
   // A chat that has the project gets what changed (a part pack), or a full pack when it was idle, like
   // re-running the pack script before each question; a pack made with /pack goes first.
   const refresh = ctx.pending ? undefined : await refreshPrimary(ctx, chatId);
@@ -115,5 +135,43 @@ async function prepare(
         : {}),
     ...(pack ? { pack } : {}),
     ...(refresh ? { view: refresh.view } : {}),
+  };
+}
+
+/**
+ * The prompt as sent in the `messages` mode: the facts line, the sections when this chat has not had them,
+ * the project as text when /pack made it, then the user's text. Nothing is attached, and nothing is sent for
+ * files changed since: the model asks for current files with `share_files`.
+ */
+function prepareText(
+  ctx: TransferContext,
+  text: string,
+  chatId: string | undefined,
+  s: TransferState,
+): PackPrepared {
+  const project = ctx.pendingText;
+  const sent = chatId ? s.briefed[chatId] : undefined;
+  const hasFiles = chatId !== undefined && (s.shared[chatId]?.length ?? 0) > 0;
+  if (!project && sent === undefined && !hasFiles) return { prompt: text, attachments: [] };
+  const synced = s.synced === signature(ctx, s);
+  const needsSections = !synced && sent !== signature(ctx, s);
+  const lines = [promptFacts({ project: projectName(ctx), sequence: pad3(s.sequence) })];
+  if (needsSections) lines.push('', renderSections(sectionsFor(ctx, s)).trim());
+  if (project) lines.push('', project.intro);
+  lines.push('', text);
+  return {
+    prompt: lines.join('\n'),
+    attachments: [],
+    ...(project
+      ? {
+          notes: [`Listing ${project.count} project file${project.count === 1 ? '' : 's'} in the prompt.`],
+          projectList: project,
+        }
+      : {}),
+    ...(needsSections
+      ? { briefs: 'sections' as const }
+      : synced && sent !== signature(ctx, s)
+        ? { briefs: 'synced' as const }
+        : {}),
   };
 }

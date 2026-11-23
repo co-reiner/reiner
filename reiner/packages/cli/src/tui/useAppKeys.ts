@@ -44,6 +44,11 @@ export function useAppKeys(k: KeyState): void {
       if (cancelRunningCommand()) k.setBusy('Cancelling…');
       return;
     }
+    // A text question takes its keys in the prompt box; Esc answers with nothing.
+    if (k.question?.kind === 'text') {
+      if (key.escape) k.question.answer('');
+      return;
+    }
     if (k.question?.kind === 'pick') {
       const next = pickKey(k.question, char, key);
       if (next) k.setQuestion(next);

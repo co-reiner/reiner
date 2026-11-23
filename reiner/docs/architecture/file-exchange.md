@@ -62,6 +62,19 @@ plain header must start with `a/` and `b/`, because git drops the first folder o
 plain deletion needs no prefix: Reiner does it itself. A refused diff says why, so the model can send the
 file in full instead.
 
+### Telling the model what was applied
+
+Built. After the y/N, Reiner tells the model what became of its changes, as the next message of the turn
+(`outcome.ts` in `cli/src/tui/commands/`): which files it applied, which it did not, and which failed with
+the error. After a "no" it asks the user why, as a line of text under the prompt; Enter on an empty line
+or Esc sends the "no" with no reason, and what is typed goes as "My reason: …". The message ends by asking
+for any remaining changes, or for the model to say it is done. A failing check the user wants fixed
+follows in the same message. The one-shot runner asks no reason.
+
+**Why:** Copilot often sends one file's diff and waits. With nothing said after the apply, the turn ended
+there and the user had to prompt again by hand for every file. A reply with no more changes ends the turn,
+so the loop stops on its own.
+
 `/apply`
 offers the last reply's changes again, for example after a "no" or when a file arrives late. After a
 restart, before any reply has arrived in this run, it reads the open chat's newest reply from the page (as

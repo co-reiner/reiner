@@ -125,10 +125,11 @@ export async function runChat(d: ChatDeps, start: ChatStart): Promise<void> {
       const tools = extractToolCalls(reply.markdown, plugins.names);
       if (!hasToolCalls(tools)) {
         const found = exchange ? await exchange.collect(reply, d.setBusy) : replyDiffs(reply);
-        // A check that failed after the apply, which the user wants fixed: its output is the next prompt.
+        // What became of the changes (and any failing check the user wants fixed) is the next prompt, so a
+        // model that sends one file at a time goes on with the next.
         const followUp = await offerChanges(api, found.sets, found.notes);
         if (!followUp) return;
-        api.print({ kind: 'info', text: `Sending the failing checks to ${module.displayName}…` });
+        api.print({ kind: 'info', text: `Telling ${module.displayName} what was applied…` });
         void api.session.transcript.append({ role: 'user', text: followUp, harness: module.id });
         d.setStreaming('');
         next = { prepared: await prepare(followUp, chatId), original: followUp };

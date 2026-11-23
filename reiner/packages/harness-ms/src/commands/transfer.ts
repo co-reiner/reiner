@@ -22,8 +22,8 @@ async function transferLines(self: ChatHarness): Promise<string[]> {
     `Search index in packs: ${s.index ? 'on' : 'off'}${support.index ? '' : ' (not supported)'}`,
     `Next patch: ${pad3(s.sequence)}${pending ? ` · pack ready: ${path.basename(pending.file)}` : ''}`,
     support.modes.length > 1
-      ? '/transfer <mode> switches · /transfer index on|off · /pack attaches the project'
-      : '/pack attaches the project',
+      ? '/transfer <mode> switches · /transfer index on|off · /pack sends the project'
+      : '/pack sends the project',
   ];
 }
 

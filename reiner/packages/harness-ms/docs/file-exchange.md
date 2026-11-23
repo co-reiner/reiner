@@ -14,9 +14,10 @@ links, co-editing), `src/copilot/drive.ts` (OneDrive, `prepareTransfer`), `src/c
 
 ```ts
 const transfer = {
-  modes: [DIFF_MODE, downloadMode(saveReplyLinks), onedriveMode(state)],
-  defaultMode: 'diff',
+  modes: [DIFF_MODE, MESSAGES_MODE, downloadMode(saveReplyLinks), onedriveMode(state)],
+  defaultMode: 'download',
   index: true, // Copilot's model runs code on uploads, so packs may carry the index
+  textLimit: 100_000, // quoted files per message in the messages mode (Send stops at ~128,000)
 };
 const exchange = createPackExchange({ root, reinerDir, stateDir, displayName, settings, support: transfer });
 ```
@@ -33,6 +34,13 @@ says how many parts follow and asks the model to wait for the last one, and the 
 ([tool protocol: messages in parts](../../../docs/architecture/tool-protocol.md#messages-in-parts)).
 Built. A pack exchange message has at most one pack, so parts come from the images MCP tools
 return (Figma screenshots).
+
+## Prompt length
+
+Copilot's prompt box takes a paste of any length and shows no counter, but disables Send above about
+**128,000 characters** (enabled at 127,937, disabled at 128,065) and says nothing. The whole prompt counts:
+the facts line, any sections and the request. The `messages` mode quotes at most `textLimit` (100,000)
+characters of files per message, which leaves room for the rest.
 
 ## Packs: `.zip.docx`
 
@@ -59,11 +67,15 @@ return (Figma screenshots).
 
 ## Reply modes
 
-| Mode       | The model…                                                                                                         | Reiner…                                                                                                                   |
-| ---------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `diff`     | Replies with one fenced `diff` block in `git diff` format                                                          | Runs `git apply --recount` (checks first)                                                                                 |
-| `download` | Creates `<project>.patch.<NNN>.patch` (`git diff --binary`), or a plain ZIP of changed and new files, and links it | `downloadReplyFiles` clicks the reply's download links (`a[download]`) and Reiner applies the file                        |
-| `onedrive` | Saves `<project>.patch.<NNN>.zip.docx` as a file it creates                                                        | `fetchCreatedFiles` opens OneDrive's web page, downloads the file from `Documents/Copilot/Created`, and Reiner applies it |
+| Mode       | The model…                                                                                                         | Reiner…                                                                                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `diff`     | Replies with one fenced `diff` block in `git diff` format                                                          | Runs `git apply --recount` (checks first)                                                                                                       |
+| `download` | Creates `<project>.patch.<NNN>.patch` (`git diff --binary`), or a plain ZIP of changed and new files, and links it | `downloadReplyFiles` clicks the reply's download links (`a[download]`) and Reiner applies the file                                              |
+| `onedrive` | Saves `<project>.patch.<NNN>.zip.docx` as a file it creates                                                        | `fetchCreatedFiles` opens OneDrive's web page, downloads the file from `Documents/Copilot/Created`, and Reiner applies it                       |
+| `messages` | Replies with one fenced `diff` block; it gets project files quoted in messages                                     | Uploads nothing: quotes files in the messages, and applies the diff ([the messages mode](../../exchange-packs/docs/packs.md#the-messages-mode)) |
+
+A new project starts in `download`. `messages` is for accounts where uploads do not work: no pack, no
+OneDrive. A project keeps the mode it was switched to.
 
 For `download`, a link is matched by its exact `download` name first, then by exact text, and only then
 by a name its text contains, so `a.zip` never picks `data.zip`.
@@ -80,7 +92,7 @@ in one reply; each name is downloaded once, from the last card. Only files after
 not that prompt's own attachments. A reply read back from the history after a restart (`/apply`) has
 no list of files, so its files are read from the page then.
 
-`diff` and `download` come from `@co-reiner/exchange-packs`; `onedrive` is defined in this package
+`diff`, `messages` and `download` come from `@co-reiner/exchange-packs`; `onedrive` is defined in this package
 (`onedriveMode` in `src/copilot/transfer.ts`), whole: its wording for the model ("create
 NAME.patch.NUMBER.zip.docx as a file for me (it lands in OneDrive, in …)", naming the folder from the
 `createdFolder` setting) and how its patch is fetched from OneDrive's page. When the name is taken,

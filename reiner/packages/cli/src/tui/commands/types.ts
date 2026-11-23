@@ -26,6 +26,8 @@ export interface CommandApi {
   startHarness(): Promise<void>;
   /** Ask the user a yes/no question under the prompt. Resolves true only for an explicit "y". */
   confirm(question: string): Promise<boolean>;
+  /** Ask the user for a line of text under the prompt. Resolves '' for Enter on an empty line or Esc. */
+  ask(question: string): Promise<string>;
   /** Let the user tick options under the prompt; resolves the ticked indexes (empty on Esc). */
   pick(question: string, options: PickOption[]): Promise<number[]>;
   /**

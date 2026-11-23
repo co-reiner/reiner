@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import type { Session } from '../session.ts';
 import { type Question, runSlashCommand } from './command-api.ts';
 import { HarnessPicker } from './HarnessPicker.tsx';
-import { PromptArea, QuestionBox } from './PromptArea.tsx';
+import { AnswerArea, PromptArea, QuestionBox } from './PromptArea.tsx';
 import { buildSuggestions } from './suggestions.ts';
 import { Transcript, useTranscript } from './Transcript.tsx';
 import { useAppKeys } from './useAppKeys.ts';
@@ -94,6 +94,8 @@ export function App({ session, autoStart = true }: AppProps) {
       {question ? <QuestionBox question={question} /> : null}
       {choosing ? (
         <HarnessPicker harnesses={session.available} onPick={pick} />
+      ) : question?.kind === 'text' ? (
+        <AnswerArea onAnswer={question.answer} status={{ session, ...harness }} />
       ) : question ? null : (
         // While a yes/no question is open the prompt is hidden, so the answer key is not typed into it.
         <PromptArea

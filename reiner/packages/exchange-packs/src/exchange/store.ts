@@ -15,6 +15,7 @@ import {
   type TransferSupport,
 } from '../instructions.ts';
 import { type PackResult, type ProjectSnapshot, packBaseName } from '../pack.ts';
+import { DEFAULT_TEXT_LIMIT, type ProjectList } from '../text.ts';
 
 /**
  * What the pack exchange needs from the harness that uses it. The harness builds this from its
@@ -68,6 +69,10 @@ export interface TransferState {
 /** A prepared prompt as the exchange makes it: it also remembers the pack that goes, to record it after the send. */
 export interface PackPrepared extends PreparedPrompt {
   pack?: PackResult;
+  /** Files quoted in the prompt (the `messages` mode), recorded as seen by the chat after the send. */
+  quoted?: string[];
+  /** The project's file list from /pack (the `messages` mode), cleared once a send carried it. */
+  projectList?: ProjectList;
   /** For a part pack: the digest of what the chat has once it is in (see `withPack`). */
   view?: string;
   /**
@@ -87,6 +92,8 @@ export interface TransferContext {
   host: PackHost;
   /** A pack made with /pack, sent with the next prompt. */
   pending?: PackResult | undefined;
+  /** The project's file list made with /pack in the `messages` mode, sent with the next prompt. */
+  pendingText?: ProjectList | undefined;
   /** The last reply, for /apply. */
   lastReply?: ChatReply | undefined;
 }
@@ -97,6 +104,13 @@ export const support = (ctx: TransferContext): TransferSupport => ctx.host.suppo
 export const projectName = (ctx: TransferContext) => packBaseName(ctx.host.root);
 export const incomingDir = (ctx: TransferContext) => path.join(ctx.host.reinerDir, 'incoming');
 export const outgoingDir = (ctx: TransferContext) => path.join(ctx.host.reinerDir, 'outgoing');
+
+/** True when the current mode quotes files in messages instead of uploading packs. */
+export const sendsText = (ctx: TransferContext, s: TransferState): boolean =>
+  currentMode(ctx, s).outbound === 'text';
+
+/** The most characters of quoted files one message carries. */
+export const textLimit = (ctx: TransferContext): number => support(ctx).textLimit ?? DEFAULT_TEXT_LIMIT;
 
 /** The mode a state names, or the harness's default when that mode is no longer offered. */
 export function currentMode(ctx: TransferContext, s: TransferState): TransferMode {

@@ -91,8 +91,11 @@ What may be sent, and how changes are applied, is the same for every harness (se
   another project with the same folder name, or one you uploaded yourself, is moved too.
 - **Down:** pick one mode with `/transfer`, then run `/instructions sync` again so the saved instructions
   describe it (Reiner warns you):
+  - `download` (the default): the model links a patch file; Reiner downloads and applies it.
   - `diff`: the model replies with a `git diff`, which Reiner applies with `git apply`.
-  - `download`: the model links a patch file; Reiner downloads and applies it.
+  - `messages`: nothing is uploaded at all. `/pack` sends the project's file list (names only), the
+    model asks for the files it needs, Reiner quotes them in its messages, and the model replies with a `git diff`. Use it when uploads do
+    not work for your account, for example without OneDrive.
   - `onedrive`: the model saves a patch file to OneDrive; Reiner fetches it from OneDrive's page.
 - **Documents are not patches.** If Copilot links or saves a real Word, Excel or PowerPoint file (a report
   you asked for, or a document made by mistake instead of a patch), Reiner applies nothing from it. It

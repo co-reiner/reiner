@@ -162,8 +162,9 @@ A harness that takes uploads does not write this itself: it creates the pack exc
 ```ts
 const transfer: TransferSupport = {
   modes: [DIFF_MODE, downloadMode(saveReplyLinks), myOwnMode],  // TransferMode: id, label, instructions, collect?
-  defaultMode: 'diff',
+  defaultMode: 'download',
   index: true,                    // packs may carry the search index
+  textLimit: 100_000,             // quoted files per message in the messages mode (MESSAGES_MODE)
 };
 const exchange = createPackExchange({
   root, reinerDir, stateDir, displayName,

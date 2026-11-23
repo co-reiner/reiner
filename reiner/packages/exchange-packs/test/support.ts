@@ -12,6 +12,7 @@ import {
   DIFF_MODE,
   type DownloadLinks,
   downloadMode,
+  MESSAGES_MODE,
   type PackExchange,
 } from '../src/index.ts';
 
@@ -32,6 +33,8 @@ export interface TestSession {
 export async function setup(
   _harnesses = 1,
   download: DownloadLinks = async () => [],
+  /** Start in the `messages` mode, with this limit for quoted files in one message. */
+  messages?: { textLimit: number },
 ): Promise<{ root: string; session: TestSession }> {
   const root = await mkdtemp(path.join(os.tmpdir(), 'reiner-packs-'));
   execFileSync('git', ['init', '-q'], { cwd: root, windowsHide: true });
@@ -47,7 +50,12 @@ export async function setup(
     stateDir: path.join(paths.modulesDir, 'alpha'),
     displayName: 'Alpha Harness',
     settings,
-    support: { modes: [DIFF_MODE, downloadMode(download)], defaultMode: 'diff', index: true },
+    support: {
+      modes: [DIFF_MODE, MESSAGES_MODE, downloadMode(download)],
+      defaultMode: messages ? 'messages' : 'diff',
+      index: true,
+      ...(messages ? { textLimit: messages.textLimit } : {}),
+    },
   });
   return {
     root,
