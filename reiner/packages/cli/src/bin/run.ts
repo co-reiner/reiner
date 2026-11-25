@@ -24,17 +24,21 @@ async function askYesNo(question: string): Promise<boolean> {
 }
 
 /**
- * Let the user tick options on the terminal: a numbered list, then "1,3", "all", or Enter for none. Without
- * a terminal nothing is picked.
+ * Let the user tick options on the terminal: a numbered list, then "1,3", "all", "none", or Enter. Enter keeps
+ * the rows in `ticked` (none when it is not given). Without a terminal nothing is picked.
  */
-async function askPick(question: string, options: PickOption[]): Promise<number[]> {
-  if (!process.stdin.isTTY || options.length === 0) return [];
+async function askPick(question: string, options: PickOption[], ticked: number[] = []): Promise<number[]> {
+  if (!process.stdin.isTTY || options.length === 0) return ticked;
   options.forEach((o, i) => {
-    console.error(`  ${String(i + 1).padStart(2)}. ${o.label}${o.detail ? `  · ${o.detail}` : ''}`);
+    const mark = ticked.includes(i) ? '[x]' : '[ ]';
+    console.error(`  ${String(i + 1).padStart(2)}. ${mark} ${o.label}${o.detail ? `  · ${o.detail}` : ''}`);
   });
   const rl = createInterface({ input: process.stdin, output: process.stderr });
   try {
-    const answer = (await rl.question(`? ${question} Numbers (e.g. 1,3), "all", or Enter for none: `)).trim();
+    const answer = (
+      await rl.question(`? ${question} Numbers (e.g. 1,3), "all", "none", or Enter to keep: `)
+    ).trim();
+    if (answer === '') return ticked;
     if (/^all$/i.test(answer)) return options.map((_, i) => i);
     const picked = answer
       .split(/[\s,]+/)
@@ -96,7 +100,8 @@ function oneShotPluginHost(module: HarnessModule, print: (entry: OutputEntry) =>
       if (label) status(label);
     },
     confirm: askYesNo,
-    choose: async (question, options) => (process.stdin.isTTY ? askPick(question, options) : undefined),
+    choose: async (question, options, ticked) =>
+      process.stdin.isTTY ? askPick(question, options, ticked) : undefined,
   };
 }
 
