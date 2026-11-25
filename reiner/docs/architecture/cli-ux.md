@@ -127,7 +127,8 @@ the extension point; the contract is in [modules.md](modules.md#harness-commands
 `reiner <command> [args]` (`packages/cli/src/bin/run.ts`) opens the harness's window, runs that harness
 command once and closes the window (or keeps it with `--keep-browser`). There are no hard-coded `login`
 or `models` subcommands: what exists depends on the harness, and an unknown name lists the harness's
-commands. Reiner's own flags count before or after the command name (`reiner models --hide-browser`,
+commands. A command a plugin brings runs the same way (`reiner mcp`, `reiner mcp tools`), after the
+harness's own; the plugin runs against the project's session, with no browser needed for it. Reiner's own flags count before or after the command name (`reiner models --hide-browser`,
 `reiner status --keep-browser`, `reiner --json models`); any other option belongs to the command
 (`reiner models --debug`), and everything after `--` is passed to it as it is. Why (2026-11-11): commander's
 `passThroughOptions` stopped reading Reiner's flags at the command name, so `--hide-browser` after it was
